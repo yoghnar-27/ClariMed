@@ -117,7 +117,7 @@ export function useSpeech(): UseSpeechResult {
   };
 
   // Split text into natural sentence or phrase chunks (each under max characters)
-  const splitTextIntoChunks = (text: string, maxLen = 220): string[] => {
+  const splitTextIntoChunks = (text: string, maxLen = 160): string[] => {
     // Strip markdown formatting symbols but preserve standard language scripts
     const clean = text
       .replace(/[*#_`~]/g, "")
