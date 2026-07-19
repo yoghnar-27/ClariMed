@@ -174,6 +174,60 @@ export default function Dashboard({ user, token, language, onLanguageChange, onU
     }
   }, [activeAnalysis]);
 
+  // Unified analyze file process to reuse for file picker, drop, and auto-capture
+  const handleProcessFile = async (fileToProcess: File) => {
+    const uploadLanguage = language;
+
+    if (user.plan !== "premium") {
+      if (history.length >= 2) {
+        setError("You have reached your limit of 2 reports on the Free plan. Upgrade to Premium for unlimited medical report analyses and insights!");
+        setIsSubscriptionModalOpen(true);
+        return;
+      }
+    }
+
+    setIsAnalyzing(true);
+    setError("");
+    setLoadingMessageIndex(0);
+    speech.stop(); // Stop any active reading
+    speech.prime(); // Prime/unlock the speech synthesis engine on direct user click gesture
+
+    const formData = new FormData();
+    formData.append("file", fileToProcess);
+    formData.append("language", uploadLanguage);
+
+    try {
+      const res = await fetch("/api/analyze", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData
+      });
+
+      const contentType = res.headers.get("content-type");
+      if (contentType && contentType.includes("application/json")) {
+        const data = await res.json();
+        if (res.ok && data.success && data.analysis) {
+          setActiveAnalysis(data.analysis);
+          setFile(null);
+          // Refresh the list
+          fetchHistory();
+        } else {
+          if (data.isLimitReached || data.isLanguageLocked) {
+            setIsSubscriptionModalOpen(true);
+          }
+          setError(data.message || "Failed to analyze report. Please try a cleaner image or PDF.");
+        }
+      } else {
+        setError("Unable to process the report analysis. The server might be restarting or busy. Please try again in a few seconds.");
+      }
+    } catch (err) {
+      console.warn("Analyze report error warning:", err);
+      setError("Network error. Make sure your server is online.");
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
   // Camera helper methods
   const startCamera = async () => {
     setIsCameraActive(true);
@@ -217,6 +271,8 @@ export default function Dashboard({ user, token, language, onLanguageChange, onU
             const capturedFile = new File([blob], "camera_captured_report.jpg", { type: "image/jpeg" });
             setFile(capturedFile);
             stopCamera();
+            // Automatically process and read the captured photo report!
+            handleProcessFile(capturedFile);
           }
         }, "image/jpeg", 0.95);
       }
@@ -341,57 +397,7 @@ export default function Dashboard({ user, token, language, onLanguageChange, onU
       setError("Please select or drop a medical report first.");
       return;
     }
-
-    const uploadLanguage = language;
-
-    if (user.plan !== "premium") {
-      if (history.length >= 2) {
-        setError("You have reached your limit of 2 reports on the Free plan. Upgrade to Premium for unlimited medical report analyses and insights!");
-        setIsSubscriptionModalOpen(true);
-        return;
-      }
-    }
-
-    setIsAnalyzing(true);
-    setError("");
-    setLoadingMessageIndex(0);
-    speech.stop(); // Stop any active reading
-    speech.prime(); // Prime/unlock the speech synthesis engine on direct user click gesture
-
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("language", uploadLanguage);
-
-    try {
-      const res = await fetch("/api/analyze", {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
-        body: formData
-      });
-
-      const contentType = res.headers.get("content-type");
-      if (contentType && contentType.includes("application/json")) {
-        const data = await res.json();
-        if (res.ok && data.success && data.analysis) {
-          setActiveAnalysis(data.analysis);
-          setFile(null);
-          // Refresh the list
-          fetchHistory();
-        } else {
-          if (data.isLimitReached || data.isLanguageLocked) {
-            setIsSubscriptionModalOpen(true);
-          }
-          setError(data.message || "Failed to analyze report. Please try a cleaner image or PDF.");
-        }
-      } else {
-        setError("Unable to process the report analysis. The server might be restarting or busy. Please try again in a few seconds.");
-      }
-    } catch (err) {
-      console.warn("Analyze report error warning:", err);
-      setError("Network error. Make sure your server is online.");
-    } finally {
-      setIsAnalyzing(false);
-    }
+    await handleProcessFile(file);
   };
 
   const handleDelete = async (id: string, e: React.MouseEvent) => {
@@ -564,7 +570,12 @@ export default function Dashboard({ user, token, language, onLanguageChange, onU
               {isCameraActive ? (
                 <div className="border-2 border-dashed border-teal-500 rounded-2xl p-4 bg-slate-900 flex flex-col items-center justify-center relative overflow-hidden min-h-[260px]">
                   <video
-                    ref={videoRef}
+                    ref={(el) => {
+                      videoRef.current = el;
+                      if (el && streamRef.current) {
+                        el.srcObject = streamRef.current;
+                      }
+                    }}
                     autoPlay
                     playsInline
                     className="w-full h-48 object-cover rounded-xl bg-black"
@@ -638,15 +649,6 @@ export default function Dashboard({ user, token, language, onLanguageChange, onU
                       </div>
                     )}
                   </div>
-
-                  <button
-                    type="button"
-                    onClick={startCamera}
-                    className="w-full border border-slate-200 hover:border-teal-300 bg-white hover:bg-teal-50/20 text-slate-700 hover:text-teal-700 rounded-xl py-2.5 px-4 text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer shadow-sm"
-                  >
-                    <Camera className="w-4 h-4 text-teal-600" />
-                    <span>Scan with Device Camera</span>
-                  </button>
                 </div>
               )}
 

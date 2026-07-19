@@ -84,7 +84,6 @@ export default function Register({
           { code: "en", name: "EN" },
           { code: "hi", name: "हि" },
           { code: "te", name: "తె" },
-          { code: "ta", name: "த" },
         ].map((lang) => (
           <button
             key={lang.code}
