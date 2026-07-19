@@ -4,7 +4,6 @@ ClariMed is a state-of-the-art, full-stack, responsive web application designed 
 
 An empathetic AI voice assistant named **Claria** reads the simplified explanation aloud in **English, Hindi, Tamil, or Telugu** to ensure maximum accessibility and patient comfort.
 
-This project is tailored as a **B.Tech AI & ML Student Portfolio Showcase**, exhibiting pristine UI/UX, robust client-server architecture, local database persistence, and cutting-edge GenAI APIs.
 
 ---
 
