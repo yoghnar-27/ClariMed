@@ -24,7 +24,7 @@ export default function Register({
   const [error, setError] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
 
-  const t = translations[language];
+  const t = translations[language] || translations["en"];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,18 +49,22 @@ export default function Register({
         body: JSON.stringify({ name, email, password }),
       });
 
-      const data: AuthResponse = await response.json();
-
-      if (data.success && data.user && data.token) {
-        setSuccessMsg("Account created successfully!");
-        setTimeout(() => {
-          onRegisterSuccess(data.user, data.token!);
-        }, 1200);
+      const contentType = response.headers.get("content-type");
+      if (response.ok && contentType && contentType.includes("application/json")) {
+        const data: AuthResponse = await response.json();
+        if (data.success && data.user && data.token) {
+          setSuccessMsg("Account created successfully!");
+          setTimeout(() => {
+            onRegisterSuccess(data.user, data.token!);
+          }, 1200);
+        } else {
+          setError(data.message || "Registration failed.");
+        }
       } else {
-        setError(data.message || "Registration failed.");
+        setError("Unable to connect to registration services. Please try again in a few seconds.");
       }
     } catch (err) {
-      console.error(err);
+      console.warn("Registration fetch warning:", err);
       setError("Server connection failed. Is the server running?");
     } finally {
       setIsLoading(false);

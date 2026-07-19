@@ -28,7 +28,7 @@ export default function Login({
   const [googleName, setGoogleName] = useState("Alex Mercer");
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
-  const t = translations[language];
+  const t = translations[language] || translations["en"];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,15 +47,19 @@ export default function Login({
         body: JSON.stringify({ email, password }),
       });
 
-      const data: AuthResponse = await response.json();
-
-      if (data.success && data.user && data.token) {
-        onLoginSuccess(data.user, data.token);
+      const contentType = response.headers.get("content-type");
+      if (response.ok && contentType && contentType.includes("application/json")) {
+        const data: AuthResponse = await response.json();
+        if (data.success && data.user && data.token) {
+          onLoginSuccess(data.user, data.token);
+        } else {
+          setError(data.message || "Failed to log in.");
+        }
       } else {
-        setError(data.message || "Failed to log in.");
+        setError("Unable to connect to login services. The server might be restarting. Please try again in a few seconds.");
       }
     } catch (err) {
-      console.error(err);
+      console.warn("Login fetch warning:", err);
       setError("Server connection failed. Is the server running?");
     } finally {
       setIsLoading(false);
@@ -76,16 +80,20 @@ export default function Login({
         body: JSON.stringify({ email: googleEmail, name: googleName }),
       });
 
-      const data: AuthResponse = await response.json();
-
-      if (data.success && data.user && data.token) {
-        setIsGoogleModalOpen(false);
-        onLoginSuccess(data.user, data.token);
+      const contentType = response.headers.get("content-type");
+      if (response.ok && contentType && contentType.includes("application/json")) {
+        const data: AuthResponse = await response.json();
+        if (data.success && data.user && data.token) {
+          setIsGoogleModalOpen(false);
+          onLoginSuccess(data.user, data.token);
+        } else {
+          setError(data.message || "Google auth failed.");
+        }
       } else {
-        setError(data.message || "Google auth failed.");
+        setError("Unable to connect to Google authentication services. Please try again in a few seconds.");
       }
     } catch (err) {
-      console.error(err);
+      console.warn("Google login fetch warning:", err);
       setError("Server connection failed during Google Sign-In.");
     } finally {
       setIsGoogleLoading(false);

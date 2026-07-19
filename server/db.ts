@@ -172,7 +172,7 @@ export const db = {
 
   // --- ANALYSES & REPORTS ---
 
-  saveAnalysis(userId: string, reportName: string, reportType: string, rawText: string, explanation: string, language: 'en' | 'hi' | 'te' | 'ta') {
+  saveAnalysis(userId: string, reportName: string, reportType: string, rawText: string, explanation: string, language: 'en' | 'hi' | 'te') {
     const data = initDb();
 
     const newAnalysis: Analysis = {
@@ -183,7 +183,10 @@ export const db = {
       rawText,
       explanation,
       language,
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
+      translations: {
+        [language]: { rawText, explanation }
+      }
     };
 
     data.analyses.push(newAnalysis);
@@ -210,5 +213,27 @@ export const db = {
     data.analyses.splice(index, 1);
     saveDb(data);
     return true;
+  },
+
+  updateAnalysis(analysisId: string, userId: string, explanation: string, language: 'en' | 'hi' | 'te', rawText?: string) {
+    const data = initDb();
+    const analysis = data.analyses.find(a => a.id === analysisId && a.userId === userId);
+    if (!analysis) {
+      throw new Error("Analysis report not found or unauthorized");
+    }
+    analysis.explanation = explanation;
+    analysis.language = language;
+    if (rawText !== undefined) {
+      analysis.rawText = rawText;
+    }
+    if (!analysis.translations) {
+      analysis.translations = {};
+    }
+    analysis.translations[language] = {
+      explanation,
+      rawText: rawText !== undefined ? rawText : analysis.rawText
+    };
+    saveDb(data);
+    return analysis;
   }
 };

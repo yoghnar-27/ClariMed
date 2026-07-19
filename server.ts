@@ -153,15 +153,6 @@ app.post("/api/analyze", authenticate, upload.single("file"), async (req, res) =
           message: "You have reached your limit of 2 reports on the Free plan. Upgrade to Premium for unlimited medical report analyses and insights!"
         });
       }
-
-      // Check language limitation (only English allowed on Free plan)
-      if (language !== "en") {
-        return res.status(403).json({
-          success: false,
-          isLanguageLocked: true,
-          message: "Multilingual translation (Hindi, Telugu, Tamil) is a Premium-only feature. Please subscribe to Premium to unlock multilingual translation!"
-        });
-      }
     }
     // Convert uploaded file buffer to Gemini inlinePart format
     const inlinePart = {
@@ -175,8 +166,7 @@ app.post("/api/analyze", authenticate, upload.single("file"), async (req, res) =
     const langNames: Record<string, string> = {
       en: "English",
       hi: "Hindi (हिंदी)",
-      te: "Telugu (తెలుగు)",
-      ta: "Tamil (தமிழ்)"
+      te: "Telugu (తెలుగు)"
     };
 
     const targetLang = langNames[language] || "English";
@@ -186,24 +176,33 @@ app.post("/api/analyze", authenticate, upload.single("file"), async (req, res) =
       You are Claria, a warm, caring, deeply reassuring personal healthcare assistant.
       Your goal is to explain medical report data (blood tests, radiology reports, prescriptions, scans etc.) to an elderly patient.
       
+      CRITICAL ACTIONABLE REQUIREMENTS:
+      - You MUST read the full uploaded medical report and explain it in the selected language (${targetLang}) using its native script.
+      - Do NOT write only a greeting, a generic closing sentence, or generic health advice (e.g., do NOT just say "Apna khayal rakhiye" or "ఎంతో ప్రేమతో నీ Claria").
+      - You MUST fully translate and explain ALL the actual test names, exact numerical measurements, ranges, and any abnormal flags found in the report. Make sure the entire content is explained, using simple everyday terms, and keep the explanation rich, balanced, and of moderate-to-medium length (around 150 to 250 words total) so it remains comfortable to listen to. Do not ignore the report! Both 'rawText' and 'explanation' must be fully populated with content-rich, translated analysis of the medical report.
+      - Do NOT omit any measurements, parameters, or findings. Preserve test names and numerical values accurately while explaining them simply in the target language's native script.
+
       CRITICAL TONAL & STRUCTURAL REQUIREMENTS:
       1. Under NO circumstances should you diagnose diseases, prescribe medication, or formulate concrete treatment plans.
       2. Keep the explanation SIMPLE, gentle, and extremely easy to understand for an elderly person with very low medical literacy. Avoid complex medical jargon. Explain markers using friendly analogies (e.g., hemoglobin is like tiny little delivery wagons carrying oxygen to your muscles).
-      3. The explanation MUST NOT BE TOO LONG AND NOT TOO SHORT. Aim for about 150 to 250 words. Just enough to explain their condition simply and reassure them.
+      3. The explanation MUST be highly comprehensive but of balanced, moderate-to-medium length, ensuring every single detected finding is explained simply and reassurance is provided so that no details are lost. Maintain a clear, beautifully structured layout.
       4. Talk VERY WARMLY, supporting and comforting them. If the report has abnormal markers or flags (which you must look out for), be exceptionally gentle and comforting. Reassure them that these numbers are just indicators, that our bodies fluctuate, and their doctor has wonderful tools to help them feel great.
       5. You MUST include a distinct, simple section in the explanation called "Necessary Precautions" or "Important Precautions & Daily Advice". Give 2 or 3 extremely basic, actionable, comforting daily precautions they can take (e.g., sipping warm water throughout the day, taking gentle rests, avoiding sudden heavy physical tasks, or keeping a friendly daily note of how they feel).
       6. Always include a gentle, loving closing reminder advising the user to discuss these findings with their personal doctor or clinical physician.
       7. The entire 'explanation' text MUST be written completely in the selected language: ${targetLang}, using the selected language's native script.
-      8. The 'rawText' should contain a clean, structured summary of the major tests, detected values, reference ranges, and abnormal flags in English for the medical records.
+      8. The 'rawText' MUST contain a complete, thorough, line-by-line transcription and details of ALL tests, values, reference ranges, and abnormal flags found in the report, without omitting a single item. List everything in a clean, beautifully structured layout in the selected language: ${targetLang}, using its native script.
     `;
 
     const userPrompt = `
-      Please perform a full analysis of the attached medical report. 
-      Analyze the text, values, units, reference intervals, and flags.
+      Please perform a highly thorough, complete, and exhaustive analysis of the attached medical report. 
+      Read and analyze every single text segment, value, unit, reference interval, and flag. Do NOT omit or skip any part of the document.
+      
+      In your 'rawText' (written entirely in ${targetLang}):
+      - List and transcribe ALL tests, parameters, results, reference ranges, and abnormal flags line-by-line, without summarizing or omitting any entries.
       
       In your 'explanation' (written entirely in ${targetLang}):
       - Begin with a warm, caring greeting as Claria (e.g., "Hello! I have carefully looked at your results...").
-      - Walk through the main findings in very simple, reassuring, and clear words.
+      - Walk through all findings and explain every single test parameter in very simple, reassuring, and clear words.
       - Add your "Necessary Precautions & Daily Advice" section with 2-3 comforting, actionable simple steps they can easily do.
       - End with your signature loving, caring sign-off, reminding them that you are their personal AI assistant and they should consult their doctor.
     `;
@@ -212,23 +211,25 @@ app.post("/api/analyze", authenticate, upload.single("file"), async (req, res) =
     const ai = getGeminiClient();
     const geminiResponse = await ai.models.generateContent({
       model: "gemini-3.5-flash",
-      contents: [
-        inlinePart,
-        { text: userPrompt }
-      ],
+      contents: {
+        parts: [
+          inlinePart,
+          { text: userPrompt }
+        ]
+      },
       config: {
         systemInstruction,
         responseMimeType: "application/json",
         responseSchema: {
-          type: Type.OBJECT,
+          type: "OBJECT",
           properties: {
             rawText: {
-              type: Type.STRING,
-              description: "A clean English text-based summary of extracted values, ranges, and flags for medical logging."
+              type: "STRING",
+              description: `A complete, thorough, line-by-line transcription and details of ALL tests, values, reference ranges, and abnormal flags found in the report, without omitting a single item, written in ${targetLang}, using its native script.`
             },
             explanation: {
-              type: Type.STRING,
-              description: `The moderate-length, comforting conversational analysis in paragraphs written entirely in ${targetLang} including simple precautions.`
+              type: "STRING",
+              description: `A highly detailed, comprehensive patient-friendly explanation in paragraphs of ALL findings, tests, and precautions, written entirely in the selected language: ${targetLang}, ensuring no results are skipped.`
             }
           },
           required: ["rawText", "explanation"]
@@ -301,6 +302,160 @@ app.delete("/api/delete-analysis/:id", authenticate, (req, res) => {
   }
 });
 
+// 5a. Translate an Analysis Record to another language instantly
+app.post("/api/translate-report", authenticate, async (req, res) => {
+  const userId = (req as any).userId;
+  const { analysisId, language } = req.body;
+
+  if (!analysisId || !language) {
+    return res.status(400).json({ success: false, message: "Missing analysisId or language" });
+  }
+
+  try {
+    // Fetch analysis
+    const userHistory = db.getUserHistory(userId);
+    const analysis = userHistory.find(a => a.id === analysisId);
+    if (!analysis) {
+      return res.status(404).json({ success: false, message: "Associated medical report not found" });
+    }
+
+    // 1. Check if target language matches current language of the active analysis
+    if (analysis.language === language) {
+      return res.status(200).json({ success: true, analysis });
+    }
+
+    // 2. Check if we already have this translation cached
+    if (analysis.translations && analysis.translations[language]) {
+      const cached = analysis.translations[language]!;
+      const updatedAnalysis = db.updateAnalysis(
+        analysisId,
+        userId,
+        cached.explanation,
+        language,
+        cached.rawText
+      );
+      return res.status(200).json({ success: true, analysis: updatedAnalysis });
+    }
+
+    const langNames: Record<string, string> = {
+      en: "English",
+      hi: "Hindi (हिंदी)",
+      te: "Telugu (తెలుగు)"
+    };
+    const targetLang = langNames[language] || "English";
+
+    // 3. Find the best available source translation to translate from
+    let sourceRawText = analysis.rawText;
+    let sourceExplanation = analysis.explanation;
+    let sourceLangCode = analysis.language;
+
+    if (analysis.translations) {
+      if (analysis.translations.en) {
+        sourceRawText = analysis.translations.en.rawText;
+        sourceExplanation = analysis.translations.en.explanation;
+        sourceLangCode = "en";
+      } else if (analysis.translations.hi) {
+        sourceRawText = analysis.translations.hi.rawText;
+        sourceExplanation = analysis.translations.hi.explanation;
+        sourceLangCode = "hi";
+      } else if (analysis.translations.te) {
+        sourceRawText = analysis.translations.te.rawText;
+        sourceExplanation = analysis.translations.te.explanation;
+        sourceLangCode = "te";
+      }
+    }
+
+    const sourceLangName = langNames[sourceLangCode] || "English";
+
+    // System instruction for the translated narrative
+    const systemInstruction = `
+      You are Claria, a warm, caring, deeply reassuring personal healthcare assistant.
+      Your goal is to explain medical report data (blood tests, radiology reports, prescriptions, scans etc.) to an elderly patient.
+      
+      CRITICAL ACTIONABLE REQUIREMENTS:
+      - You MUST read the full uploaded medical report and explain/translate it completely into the selected language (${targetLang}) using its native script.
+      - Do NOT write only a greeting, a generic closing sentence, or generic health advice (e.g., do NOT just say "Apna khayal rakhiye" or "ఎంతో ప్రేమతో నీ Claria").
+      - You MUST fully translate and explain ALL the actual test names, exact numerical measurements, ranges, and any abnormal flags found in the report. Make sure the entire content is explained, using simple everyday terms, and keep the explanation rich, balanced, and of moderate-to-medium length (around 150 to 250 words total) so it remains comfortable to listen to. Do not ignore the report! Both 'rawText' and 'explanation' must be fully populated with content-rich, translated analysis of the medical report.
+      - Do NOT omit any measurements, parameters, or findings. Preserve test names and numerical values accurately while explaining them simply in the target language's native script.
+
+      CRITICAL TONAL & STRUCTURAL REQUIREMENTS:
+      1. Under NO circumstances should you diagnose diseases, prescribe medication, or formulate concrete treatment plans.
+      2. Keep the explanation SIMPLE, gentle, and extremely easy to understand for an elderly person with very low medical literacy. Avoid complex medical jargon. Explain markers using friendly analogies (e.g., hemoglobin is like tiny little delivery wagons carrying oxygen to your muscles).
+      3. The explanation MUST be highly comprehensive but of balanced, moderate-to-medium length, ensuring every single detected finding is explained simply and reassurance is provided so that no details are lost. Maintain a clear, beautifully structured layout.
+      4. Talk VERY WARMLY, supporting and comforting them. If the report has abnormal markers or flags, be exceptionally gentle and comforting. Reassure them that these numbers are just indicators, that our bodies fluctuate, and their doctor has wonderful tools to help them feel great.
+      5. You MUST include a distinct, simple section in the explanation called "Necessary Precautions" or "Important Precautions & Daily Advice". Give 2 or 3 extremely basic, actionable, comforting daily precautions they can take (e.g., sipping warm water throughout the day, taking gentle rests, avoiding sudden heavy physical tasks, or keeping a friendly daily note of how they feel).
+      6. Always include a gentle, loving closing reminder advising the user to discuss these findings with their personal doctor or clinical physician.
+      7. Both the 'explanation' and the 'rawText' MUST be written completely in the selected language: ${targetLang}, using the selected language's native script.
+      8. The 'rawText' MUST contain a complete, thorough, line-by-line transcription and details of ALL tests, values, reference ranges, and abnormal flags found in the report, without omitting a single item. List everything in a clean, beautifully structured layout in the selected language: ${targetLang}, using its native script.
+    `;
+
+    const userPrompt = `
+      Please translate and fully generate BOTH the raw report description (rawText) and the warm explanation (explanation) for the following medical report:
+      
+      Source Language: ${sourceLangName}
+      Input Raw Description:
+      "${sourceRawText}"
+      
+      Input Explanation:
+      "${sourceExplanation}"
+      
+      Translate and generate both fields completely in the selected language: ${targetLang} using its native script.
+      Make sure to translate and explain ALL the medical values, findings, and test measurements in the final native script explanation. Do not omit or skip any details, and do not summarize! Follow the system instructions strictly.
+    `;
+
+    const ai = getGeminiClient();
+    const geminiResponse = await ai.models.generateContent({
+      model: "gemini-3.5-flash",
+      contents: userPrompt,
+      config: {
+        systemInstruction,
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: "OBJECT",
+          properties: {
+            rawText: {
+              type: "STRING",
+              description: `A complete, thorough, line-by-line transcription and details of ALL tests, values, reference ranges, and abnormal flags found in the report, without omitting a single item, written in ${targetLang}, using its native script.`
+            },
+            explanation: {
+              type: "STRING",
+              description: `A highly detailed, comprehensive patient-friendly explanation in paragraphs of ALL findings, tests, and precautions, written entirely in the selected language: ${targetLang}, ensuring no results are skipped.`
+            }
+          },
+          required: ["rawText", "explanation"]
+        }
+      }
+    });
+
+    const parsedResult = geminiResponse.text;
+    if (!parsedResult) {
+      throw new Error("No response returned from the AI model");
+    }
+
+    let cleanJson = parsedResult.trim();
+    if (cleanJson.startsWith("```")) {
+      cleanJson = cleanJson.replace(/^```json\s*/i, "").replace(/```$/, "").trim();
+    }
+    const parsedData = JSON.parse(cleanJson);
+
+    // Update the record in the DB (updates both explanation and rawText)
+    const updatedAnalysis = db.updateAnalysis(analysisId, userId, parsedData.explanation, language, parsedData.rawText);
+
+    res.status(200).json({
+      success: true,
+      analysis: updatedAnalysis
+    });
+
+  } catch (error: any) {
+    console.error("Translation route error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Translation failed. Please try again.",
+      error: error.message
+    });
+  }
+});
+
 // 5b. Interactive Real-time Q&A with Claria
 app.post("/api/chat", authenticate, async (req, res) => {
   const userId = (req as any).userId;
@@ -322,8 +477,7 @@ app.post("/api/chat", authenticate, async (req, res) => {
     const langNames: Record<string, string> = {
       en: "English",
       hi: "Hindi (हिंदी)",
-      te: "Telugu (తెలుగు)",
-      ta: "Tamil (தமிழ்)"
+      te: "Telugu (తెలుగు)"
     };
     const targetLang = langNames[language] || "English";
 

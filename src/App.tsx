@@ -27,8 +27,10 @@ export default function App() {
         setCurrentPage("login");
       }
 
-      if (savedLang && ["en", "hi", "te", "ta"].includes(savedLang)) {
+      if (savedLang && ["en", "hi", "te"].includes(savedLang)) {
         setLanguage(savedLang);
+      } else {
+        setLanguage("en");
       }
     } catch (e) {
       console.error("Session restoration error:", e);

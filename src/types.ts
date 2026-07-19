@@ -18,8 +18,13 @@ export interface Analysis {
   reportType: string; // 'image/png' | 'image/jpeg' | 'application/pdf' | etc.
   rawText: string;    // Extracted medical terms
   explanation: string; // Gemini-generated warm human-friendly paragraphs
-  language: 'en' | 'hi' | 'te' | 'ta'; // English, Hindi, Telugu, Tamil
+  language: 'en' | 'hi' | 'te'; // English, Hindi, Telugu
   createdAt: string;
+  translations?: {
+    en?: { rawText: string; explanation: string };
+    hi?: { rawText: string; explanation: string };
+    te?: { rawText: string; explanation: string };
+  };
 }
 
 export interface AuthResponse {

@@ -18,7 +18,9 @@ import {
   Heart,
   Stethoscope,
   MessageSquare,
-  Send
+  Send,
+  Camera,
+  CameraOff
 } from "lucide-react";
 import { useSpeech } from "../hooks/useSpeech";
 import { User as UserType, Analysis } from "../types";
@@ -52,20 +54,10 @@ export default function Dashboard({ user, token, language, onLanguageChange, onU
   const [error, setError] = useState("");
   const [isDragging, setIsDragging] = useState(false);
 
-  // Elderly easy-assist mode state (initialized from localStorage)
-  const [isElderlyMode, setIsElderlyMode] = useState<boolean>(() => {
-    try {
-      return localStorage.getItem("clarimed_elderly_mode") === "true";
-    } catch {
-      return false;
-    }
-  });
-
-  // Claria Interactive Chat states
-  const [chatHistory, setChatHistory] = useState<Array<{ role: "user" | "model"; text: string }>>([]);
-  const [chatInput, setChatInput] = useState("");
-  const [isChatLoading, setIsChatLoading] = useState(false);
-  const [chatError, setChatError] = useState("");
+  // Camera access states & references
+  const [isCameraActive, setIsCameraActive] = useState(false);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
 
   // Subscription states
   const [isSubscriptionModalOpen, setIsSubscriptionModalOpen] = useState(false);
@@ -87,13 +79,18 @@ export default function Dashboard({ user, token, language, onLanguageChange, onU
           Authorization: `Bearer ${token}`
         }
       });
-      const data = await res.json();
-      if (data.success && data.user) {
-        onUserUpdate(data.user);
-        alert("Subscription canceled successfully. You are now on the Free tier.");
+      const contentType = res.headers.get("content-type");
+      if (res.ok && contentType && contentType.includes("application/json")) {
+        const data = await res.json();
+        if (data.success && data.user) {
+          onUserUpdate(data.user);
+          alert("Subscription canceled successfully. You are now on the Free tier.");
+        }
+      } else {
+        alert("Unable to cancel subscription. The server is currently busy. Please try again.");
       }
     } catch (err) {
-      console.error(err);
+      console.warn("Cancel subscription error:", err);
       alert("Failed to cancel subscription.");
     }
   };
@@ -121,19 +118,24 @@ export default function Dashboard({ user, token, language, onLanguageChange, onU
         })
       });
 
-      const data = await res.json();
-      if (data.success && data.user) {
-        onUserUpdate(data.user);
-        setIsSubscriptionModalOpen(false);
-        setCardholderName("");
-        setCardNumber("");
-        setExpiryDate("");
-        setCvc("");
+      const contentType = res.headers.get("content-type");
+      if (res.ok && contentType && contentType.includes("application/json")) {
+        const data = await res.json();
+        if (data.success && data.user) {
+          onUserUpdate(data.user);
+          setIsSubscriptionModalOpen(false);
+          setCardholderName("");
+          setCardNumber("");
+          setExpiryDate("");
+          setCvc("");
+        } else {
+          setPaymentError(data.message || "Upgrade failed. Please check your card info and try again.");
+        }
       } else {
-        setPaymentError(data.message || "Upgrade failed. Please check your card info and try again.");
+        setPaymentError("Unable to upgrade subscription. The server is currently busy. Please try again.");
       }
     } catch (err) {
-      console.error(err);
+      console.warn("Upgrade subscription error:", err);
       setPaymentError("Network error. Failed to upgrade.");
     } finally {
       setIsSubmittingPayment(false);
@@ -146,24 +148,21 @@ export default function Dashboard({ user, token, language, onLanguageChange, onU
   // Load user report history on startup
   useEffect(() => {
     fetchHistory();
+    return () => {
+      // Cleanup camera on unmount
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
+      }
+    };
   }, []);
 
-  // Sync active analysis with chat introduction & auto voice-assist
+  // Sync active analysis with auto voice-assist
   const lastReadAnalysisIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (activeAnalysis) {
-      // Setup the warm welcoming message in the native language
-      const tSet = translations[activeAnalysis.language] || translations["en"];
-      setChatHistory([
-        {
-          role: "model",
-          text: tSet.chatIntroduction
-        }
-      ]);
-
-      // If elderly mode is ON, automatically trigger audio reading once
-      if (isElderlyMode && lastReadAnalysisIdRef.current !== activeAnalysis.id) {
+      // Automatically trigger audio reading as soon as report is active/loaded
+      if (lastReadAnalysisIdRef.current !== activeAnalysis.id) {
         lastReadAnalysisIdRef.current = activeAnalysis.id;
         const timer = setTimeout(() => {
           speech.speak(activeAnalysis.explanation, activeAnalysis.language);
@@ -171,57 +170,109 @@ export default function Dashboard({ user, token, language, onLanguageChange, onU
         return () => clearTimeout(timer);
       }
     } else {
-      setChatHistory([]);
       lastReadAnalysisIdRef.current = null;
     }
-  }, [activeAnalysis, isElderlyMode]);
+  }, [activeAnalysis]);
 
-  // Handle submitting Q&A messages to Claria
-  const handleChatSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!chatInput.trim() || !activeAnalysis || isChatLoading) return;
-
-    const userText = chatInput.trim();
-    setChatInput("");
-    setChatError("");
-    setIsChatLoading(true);
-
-    const updatedHistory = [...chatHistory, { role: "user" as const, text: userText }];
-    setChatHistory(updatedHistory);
-
+  // Camera helper methods
+  const startCamera = async () => {
+    setIsCameraActive(true);
+    setError("");
+    setFile(null); // Clear any pre-selected file
     try {
-      const res = await fetch("/api/chat", {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: "environment" } // Prioritize back camera for reports
+      });
+      streamRef.current = stream;
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+      }
+    } catch (err: any) {
+      console.error("Camera access failed:", err);
+      setError("Unable to access the device camera. Please check permissions.");
+      setIsCameraActive(false);
+    }
+  };
+
+  const stopCamera = () => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current = null;
+    }
+    setIsCameraActive(false);
+  };
+
+  const capturePhoto = () => {
+    if (videoRef.current) {
+      const video = videoRef.current;
+      const canvas = document.createElement("canvas");
+      canvas.width = video.videoWidth || 640;
+      canvas.height = video.videoHeight || 480;
+      
+      const ctx = canvas.getContext("2d");
+      if (ctx) {
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        canvas.toBlob((blob) => {
+          if (blob) {
+            const capturedFile = new File([blob], "camera_captured_report.jpg", { type: "image/jpeg" });
+            setFile(capturedFile);
+            stopCamera();
+          }
+        }, "image/jpeg", 0.95);
+      }
+    }
+  };
+
+  // Instant on-the-fly report translation helper
+  const handleTranslateReport = async (targetLang: LanguageCode, analysisId: string) => {
+    try {
+      setIsAnalyzing(true);
+      setError("");
+      speech.stop();
+
+      const res = await fetch("/api/translate-report", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`
         },
         body: JSON.stringify({
-          analysisId: activeAnalysis.id,
-          messages: updatedHistory,
-          language: activeAnalysis.language
+          analysisId,
+          language: targetLang
         })
       });
 
-      const data = await res.json();
-      if (data.success && data.reply) {
-        const clariaReply = data.reply;
-        setChatHistory(prev => [...prev, { role: "model" as const, text: clariaReply }]);
-        
-        // Auto-read Claria's answer if easy mode is active
-        if (isElderlyMode) {
-          speech.speak(clariaReply, activeAnalysis.language);
+      const contentType = res.headers.get("content-type");
+      if (contentType && contentType.includes("application/json")) {
+        const data = await res.json();
+        if (res.ok && data.success && data.analysis) {
+          // Update both active analysis AND last read reference so it reads automatically
+          lastReadAnalysisIdRef.current = data.analysis.id;
+          setActiveAnalysis(data.analysis);
+          fetchHistory();
+          
+          // Let it speak immediately in the new language!
+          setTimeout(() => {
+            speech.speak(data.analysis.explanation, targetLang);
+          }, 600);
+        } else {
+          if (data.isLanguageLocked) {
+            setIsSubscriptionModalOpen(true);
+          }
+          setError(data.message || "Failed to translate report.");
         }
       } else {
-        setChatError(data.message || "Could not retrieve answer. Please try again.");
+        setError("Unable to connect to translation services. The server might be restarting. Please try again in a few seconds.");
       }
     } catch (err) {
-      console.error("Chat error:", err);
-      setChatError("Network error. Claria is currently offline.");
+      console.warn("Translation warning:", err);
+      setError("Failed to translate the report narrative.");
     } finally {
-      setIsChatLoading(false);
+      setIsAnalyzing(false);
     }
   };
+
+
 
   // Cycle through comforting clinical messages on upload
   useEffect(() => {
@@ -239,12 +290,17 @@ export default function Dashboard({ user, token, language, onLanguageChange, onU
       const res = await fetch("/api/history", {
         headers: { Authorization: `Bearer ${token}` }
       });
-      const data = await res.json();
-      if (data.success) {
-        setHistory(data.history || []);
+      const contentType = res.headers.get("content-type");
+      if (res.ok && contentType && contentType.includes("application/json")) {
+        const data = await res.json();
+        if (data.success) {
+          setHistory(data.history || []);
+        }
+      } else {
+        console.warn("Failed to load history: Server returned non-JSON response or status", res.status);
       }
     } catch (err) {
-      console.error("Failed to load history:", err);
+      console.warn("Failed to load history:", err);
     }
   };
 
@@ -286,19 +342,11 @@ export default function Dashboard({ user, token, language, onLanguageChange, onU
       return;
     }
 
-    const multilingualCount = history.filter(item => item.language && item.language !== "en").length;
-    const hasUsedMultilingual = multilingualCount >= 1;
+    const uploadLanguage = language;
 
-    // Client-side limits checks for Free plan
     if (user.plan !== "premium") {
       if (history.length >= 2) {
         setError("You have reached your limit of 2 reports on the Free plan. Upgrade to Premium for unlimited medical report analyses and insights!");
-        setIsSubscriptionModalOpen(true);
-        return;
-      }
-
-      if (language !== "en" && hasUsedMultilingual) {
-        setError("You have already used your 1 free multilingual translation. Please subscribe to Premium to unlock unlimited Hindi, Telugu, and Tamil translations!");
         setIsSubscriptionModalOpen(true);
         return;
       }
@@ -308,10 +356,11 @@ export default function Dashboard({ user, token, language, onLanguageChange, onU
     setError("");
     setLoadingMessageIndex(0);
     speech.stop(); // Stop any active reading
+    speech.prime(); // Prime/unlock the speech synthesis engine on direct user click gesture
 
     const formData = new FormData();
     formData.append("file", file);
-    formData.append("language", language);
+    formData.append("language", uploadLanguage);
 
     try {
       const res = await fetch("/api/analyze", {
@@ -320,20 +369,25 @@ export default function Dashboard({ user, token, language, onLanguageChange, onU
         body: formData
       });
 
-      const data = await res.json();
-      if (data.success && data.analysis) {
-        setActiveAnalysis(data.analysis);
-        setFile(null);
-        // Refresh the list
-        fetchHistory();
-      } else {
-        if (data.isLimitReached || data.isLanguageLocked) {
-          setIsSubscriptionModalOpen(true);
+      const contentType = res.headers.get("content-type");
+      if (contentType && contentType.includes("application/json")) {
+        const data = await res.json();
+        if (res.ok && data.success && data.analysis) {
+          setActiveAnalysis(data.analysis);
+          setFile(null);
+          // Refresh the list
+          fetchHistory();
+        } else {
+          if (data.isLimitReached || data.isLanguageLocked) {
+            setIsSubscriptionModalOpen(true);
+          }
+          setError(data.message || "Failed to analyze report. Please try a cleaner image or PDF.");
         }
-        setError(data.message || "Failed to analyze report. Please try a cleaner image or PDF.");
+      } else {
+        setError("Unable to process the report analysis. The server might be restarting or busy. Please try again in a few seconds.");
       }
     } catch (err) {
-      console.error(err);
+      console.warn("Analyze report error warning:", err);
       setError("Network error. Make sure your server is online.");
     } finally {
       setIsAnalyzing(false);
@@ -349,22 +403,27 @@ export default function Dashboard({ user, token, language, onLanguageChange, onU
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` }
       });
-      const data = await res.json();
-      if (data.success) {
-        setHistory((prev) => prev.filter((item) => item.id !== id));
-        if (activeAnalysis?.id === id) {
-          setActiveAnalysis(null);
-          speech.stop();
+      const contentType = res.headers.get("content-type");
+      if (res.ok && contentType && contentType.includes("application/json")) {
+        const data = await res.json();
+        if (data.success) {
+          setHistory((prev) => prev.filter((item) => item.id !== id));
+          if (activeAnalysis?.id === id) {
+            setActiveAnalysis(null);
+            speech.stop();
+          }
         }
       }
     } catch (err) {
-      console.error("Delete failed:", err);
+      console.warn("Delete warning:", err);
     }
   };
 
   const handleLoadHistoryItem = (item: Analysis) => {
     setActiveAnalysis(item);
+    onLanguageChange(item.language);
     speech.stop(); // Stop current speech
+    speech.prime(); // Prime the speech engine on user click gesture
   };
 
   const handleTriggerSpeech = () => {
@@ -377,16 +436,15 @@ export default function Dashboard({ user, token, language, onLanguageChange, onU
     const labels: Record<string, string> = {
       en: "English Narrative",
       hi: "Hindi (हिंदी) अनुवाद",
-      te: "Telugu (తెలుగు) अनुवाद",
-      ta: "Tamil (தமிழ்) अनुवाद"
+      te: "Telugu (తెలుగు) अनुवाद"
     };
     return labels[langCode] || langCode;
   };
 
-  const t = translations[language];
+  const t = translations[language] || translations["en"];
 
   return (
-    <div className={`min-h-screen flex flex-col font-sans ${isElderlyMode ? "bg-slate-50/50" : ""}`}>
+    <div className="min-h-screen flex flex-col font-sans bg-slate-50/30">
       {/* 1. Header Bar */}
       <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200 px-6 py-4 flex items-center justify-between shadow-sm">
         <div className="flex items-center gap-3">
@@ -415,37 +473,6 @@ export default function Dashboard({ user, token, language, onLanguageChange, onU
           </button>
         </div>
       </header>
-
-      {/* Elderly Easy-Assist Mode Banner */}
-      <div className="bg-gradient-to-r from-amber-500 to-amber-600 text-white px-6 py-3.5 flex flex-col md:flex-row items-center justify-between gap-4 shadow-md transition-all border-b border-amber-600">
-        <div className="flex items-center gap-3.5 text-center md:text-left flex-col md:flex-row">
-          <div className="w-11 h-11 rounded-full bg-white/20 flex items-center justify-center text-2xl shadow-inner flex-shrink-0 animate-[bounce_2s_infinite]">👵</div>
-          <div>
-            <h4 className="text-sm font-black flex items-center gap-2 justify-center md:justify-start">
-              <span>{t.assistModeToggle}</span>
-              <span className={`text-[10px] px-2 py-0.5 rounded-md font-extrabold uppercase tracking-wide ${isElderlyMode ? "bg-white text-amber-700" : "bg-white/20 text-white"}`}>
-                {isElderlyMode ? t.elderlyModeOn : t.elderlyModeOff}
-              </span>
-            </h4>
-            <p className="text-xs text-amber-50 font-medium max-w-xl mt-0.5">{t.assistModeDesc}</p>
-          </div>
-        </div>
-        <button
-          onClick={() => {
-            const nextMode = !isElderlyMode;
-            setIsElderlyMode(nextMode);
-            localStorage.setItem("clarimed_elderly_mode", String(nextMode));
-            if (nextMode) {
-              speech.speak("Assistant mode is now on. The text is now larger and I will automatically read explanations for you.", language);
-            } else {
-              speech.stop();
-            }
-          }}
-          className="bg-white text-slate-900 hover:bg-amber-50 px-5 py-2.5 rounded-2xl text-xs font-black tracking-wider uppercase shadow-md hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer flex items-center gap-1.5"
-        >
-          <span>{isElderlyMode ? "👵 Turn Off Easy Mode" : "👵 Turn On Easy Mode"}</span>
-        </button>
-      </div>
 
       {/* 2. Main Content Grid */}
       <main className="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
@@ -534,55 +561,94 @@ export default function Dashboard({ user, token, language, onLanguageChange, onU
             </h2>
 
             <form onSubmit={handleAnalyze} className="space-y-4">
-              {/* Drag-and-drop region */}
-              <div
-                onDragOver={handleDragOver}
-                onDragLeave={handleDragLeave}
-                onDrop={handleDrop}
-                onClick={() => document.getElementById("report-file-picker")?.click()}
-                className={`border-2 border-dashed rounded-2xl p-6 flex flex-col items-center justify-center text-center cursor-pointer transition-all duration-200 ${
-                  isDragging
-                    ? "border-teal-400 bg-teal-50/50"
-                    : file
-                    ? "border-emerald-300 bg-emerald-50/20"
-                    : "border-slate-200 hover:border-teal-300 hover:bg-teal-50/50"
-                }`}
-              >
-                <input
-                  key={file ? file.name : "empty"}
-                  id="report-file-picker"
-                  type="file"
-                  onChange={handleFileChange}
-                  accept=".png, .jpg, .jpeg, .pdf"
-                  className="hidden"
-                />
+              {isCameraActive ? (
+                <div className="border-2 border-dashed border-teal-500 rounded-2xl p-4 bg-slate-900 flex flex-col items-center justify-center relative overflow-hidden min-h-[260px]">
+                  <video
+                    ref={videoRef}
+                    autoPlay
+                    playsInline
+                    className="w-full h-48 object-cover rounded-xl bg-black"
+                  />
+                  <div className="flex gap-2.5 mt-3.5 z-10 w-full justify-center">
+                    <button
+                      type="button"
+                      onClick={capturePhoto}
+                      className="bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold py-2 px-4 rounded-xl shadow-md cursor-pointer transition-all flex items-center gap-1.5"
+                    >
+                      <Camera className="w-4 h-4" />
+                      <span>Capture Scan</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={stopCamera}
+                      className="bg-slate-700 hover:bg-slate-600 text-white text-xs font-bold py-2 px-4 rounded-xl shadow-md cursor-pointer transition-all flex items-center gap-1.5"
+                    >
+                      <CameraOff className="w-4 h-4" />
+                      <span>Cancel</span>
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <div
+                    onDragOver={handleDragOver}
+                    onDragLeave={handleDragLeave}
+                    onDrop={handleDrop}
+                    onClick={() => document.getElementById("report-file-picker")?.click()}
+                    className={`border-2 border-dashed rounded-2xl p-6 flex flex-col items-center justify-center text-center cursor-pointer transition-all duration-200 ${
+                      isDragging
+                        ? "border-teal-400 bg-teal-50/50"
+                        : file
+                        ? "border-emerald-300 bg-emerald-50/20"
+                        : "border-slate-200 hover:border-teal-300 hover:bg-teal-50/50"
+                    }`}
+                  >
+                    <input
+                      key={file ? file.name : "empty"}
+                      id="report-file-picker"
+                      type="file"
+                      onChange={handleFileChange}
+                      accept=".png, .jpg, .jpeg, .pdf"
+                      className="hidden"
+                    />
 
-                {file ? (
-                  <div className="space-y-2">
-                    <div className="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-xl flex items-center justify-center mx-auto">
-                      <FileText className="w-6 h-6" />
-                    </div>
-                    <p className="text-sm font-semibold text-slate-800 truncate max-w-xs mx-auto">
-                      {file.name}
-                    </p>
-                    <p className="text-xs text-slate-400">
-                      {(file.size / (1024 * 1024)).toFixed(2)} MB • Click to change
-                    </p>
+                    {file ? (
+                      <div className="space-y-2">
+                        <div className="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-xl flex items-center justify-center mx-auto">
+                          <FileText className="w-6 h-6" />
+                        </div>
+                        <p className="text-sm font-semibold text-slate-800 truncate max-w-xs mx-auto">
+                          {file.name}
+                        </p>
+                        <p className="text-xs text-slate-400">
+                          {(file.size / (1024 * 1024)).toFixed(2)} MB • Click to change
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        <div className="w-12 h-12 bg-teal-50 text-teal-600 rounded-xl flex items-center justify-center mx-auto">
+                          <Upload className="w-6 h-6" />
+                        </div>
+                        <p className="text-sm font-medium text-slate-700">
+                          {t.dragDropOr}
+                        </p>
+                        <p className="text-xs text-slate-400">
+                          {t.supportsFileTypes}
+                        </p>
+                      </div>
+                    )}
                   </div>
-                ) : (
-                  <div className="space-y-2">
-                    <div className="w-12 h-12 bg-teal-50 text-teal-600 rounded-xl flex items-center justify-center mx-auto">
-                      <Upload className="w-6 h-6" />
-                    </div>
-                    <p className="text-sm font-medium text-slate-700">
-                      {t.dragDropOr}
-                    </p>
-                    <p className="text-xs text-slate-400">
-                      {t.supportsFileTypes}
-                    </p>
-                  </div>
-                )}
-              </div>
+
+                  <button
+                    type="button"
+                    onClick={startCamera}
+                    className="w-full border border-slate-200 hover:border-teal-300 bg-white hover:bg-teal-50/20 text-slate-700 hover:text-teal-700 rounded-xl py-2.5 px-4 text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer shadow-sm"
+                  >
+                    <Camera className="w-4 h-4 text-teal-600" />
+                    <span>Scan with Device Camera</span>
+                  </button>
+                </div>
+              )}
 
               {/* Language Picker */}
               <div>
@@ -590,16 +656,13 @@ export default function Dashboard({ user, token, language, onLanguageChange, onU
                   <Languages className="w-3.5 h-3.5 text-teal-600" />
                   <span>{t.narrativeLanguage}</span>
                 </label>
-                <div className="grid grid-cols-4 gap-2">
+                <div className="grid grid-cols-3 gap-1.5">
                   {[
-                    { code: "en", name: "English", isFree: true },
-                    { code: "hi", name: "Hindi", isFree: false },
-                    { code: "te", name: "Telugu", isFree: false },
-                    { code: "ta", name: "Tamil", isFree: false }
+                    { code: "en", name: "English" },
+                    { code: "hi", name: "Hindi" },
+                    { code: "te", name: "Telugu" }
                   ].map((lang) => {
-                    const multilingualCount = history.filter(item => item.language && item.language !== "en").length;
-                    const hasUsedMultilingual = multilingualCount >= 1;
-                    const isLocked = !lang.isFree && hasUsedMultilingual && user.plan !== "premium";
+                    const isLocked = false;
 
                     return (
                       <button
@@ -610,6 +673,10 @@ export default function Dashboard({ user, token, language, onLanguageChange, onU
                             setIsSubscriptionModalOpen(true);
                           } else {
                             onLanguageChange(lang.code as LanguageCode);
+                            speech.prime(); // Prime the speech engine immediately on user gesture
+                            if (activeAnalysis) {
+                              handleTranslateReport(lang.code as LanguageCode, activeAnalysis.id);
+                            }
                           }
                         }}
                         className={`relative py-2 px-1 rounded-xl text-xs font-semibold border transition-all cursor-pointer flex items-center justify-center gap-1 ${
@@ -632,9 +699,7 @@ export default function Dashboard({ user, token, language, onLanguageChange, onU
                   <p className="text-[10px] text-slate-400 mt-1.5 flex items-center gap-1 leading-relaxed">
                     <Sparkles className="w-3.5 h-3.5 text-amber-500 flex-shrink-0" />
                     <span>
-                      {history.filter(item => item.language && item.language !== "en").length >= 1
-                        ? "You have used your 1 free translation. Upgrade to Premium for unlimited multilingual translations!"
-                        : t.multilingualPremiumFeature}
+                      {t.multilingualPremiumFeature}
                     </span>
                   </p>
                 )}
@@ -670,83 +735,7 @@ export default function Dashboard({ user, token, language, onLanguageChange, onU
             )}
           </div>
 
-          {/* B. Voice Assistant Panel (Claria Controller) */}
-          {activeAnalysis && (
-            <div className="premium-card p-6 bg-gradient-to-br from-indigo-50/40 via-white to-teal-50/20 border border-indigo-100/30">
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-9 h-9 bg-indigo-100/80 text-indigo-600 rounded-xl flex items-center justify-center">
-                    <Volume2 className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <h3 className="text-md font-bold font-display text-slate-800">Claria Voice Assistant</h3>
-                    <p className="text-xs text-slate-500">Natural Language Healthcare voice</p>
-                  </div>
-                </div>
 
-                {/* Animated sound wave bars when active speaking */}
-                {speech.isSpeaking && !speech.isPaused && (
-                  <div className="flex gap-0.5 items-end h-6">
-                    <span className="w-1 bg-indigo-500 rounded-full animate-[bounce_0.8s_infinite_100ms] h-3" />
-                    <span className="w-1 bg-indigo-500 rounded-full animate-[bounce_0.8s_infinite_300ms] h-5" />
-                    <span className="w-1 bg-indigo-500 rounded-full animate-[bounce_0.8s_infinite_200ms] h-2" />
-                    <span className="w-1 bg-indigo-500 rounded-full animate-[bounce_0.8s_infinite_400ms] h-4" />
-                  </div>
-                )}
-              </div>
-
-              {/* Spoken subtitle highlight */}
-              {speech.spokenSentence ? (
-                <div className="bg-white/80 p-3.5 rounded-2xl border border-indigo-100/30 text-xs text-slate-600 italic mb-4 leading-relaxed min-h-[50px] shadow-sm">
-                  💬 "{speech.spokenSentence}"
-                </div>
-              ) : (
-                <p className="text-xs text-slate-500 mb-4 leading-relaxed">
-                  Let Claria read the explanation aloud in a comforting, professional voice. Supported in English, Hindi, Telugu, and Tamil.
-                </p>
-              )}
-
-              {/* Speeches player controls */}
-              <div className="flex gap-3 justify-center">
-                {!speech.isSpeaking ? (
-                  <button
-                    onClick={handleTriggerSpeech}
-                    className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl py-2 px-5 text-xs font-semibold shadow-md shadow-indigo-600/10 transition-all active:scale-95 cursor-pointer"
-                  >
-                    <Play className="w-3.5 h-3.5" />
-                    <span>Speak Explanation</span>
-                  </button>
-                ) : (
-                  <div className="flex gap-2">
-                    {speech.isPaused ? (
-                      <button
-                        onClick={speech.resume}
-                        className="flex items-center gap-1.5 bg-teal-600 hover:bg-teal-700 text-white rounded-xl py-2 px-4 text-xs font-semibold shadow-sm transition-all cursor-pointer"
-                      >
-                        <Play className="w-3.5 h-3.5" />
-                        <span>Resume</span>
-                      </button>
-                    ) : (
-                      <button
-                        onClick={speech.pause}
-                        className="flex items-center gap-1.5 bg-slate-600 hover:bg-slate-700 text-white rounded-xl py-2 px-4 text-xs font-semibold shadow-sm transition-all cursor-pointer"
-                      >
-                        <Pause className="w-3.5 h-3.5" />
-                        <span>Pause</span>
-                      </button>
-                    )}
-                    <button
-                      onClick={speech.stop}
-                      className="flex items-center gap-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl py-2 px-4 text-xs font-semibold shadow-sm transition-all cursor-pointer"
-                    >
-                      <Square className="w-3.5 h-3.5" />
-                      <span>Stop</span>
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
 
           {/* C. Historical Report Explorer */}
           <div className="premium-card p-6 bg-white flex-1 min-h-[250px] flex flex-col">
@@ -824,7 +813,7 @@ export default function Dashboard({ user, token, language, onLanguageChange, onU
             </div>
           ) : activeAnalysis ? (
             /* Active report visualization card */
-            <div className="premium-card bg-white flex-1 p-6 md:p-8 flex flex-col">
+            <div className="premium-card bg-white flex-1 p-6 md:p-8 flex flex-col justify-between">
               {/* Document Header details */}
               <div className="border-b border-slate-100 pb-5 mb-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
@@ -844,140 +833,94 @@ export default function Dashboard({ user, token, language, onLanguageChange, onU
                     })}
                   </p>
                 </div>
+              </div>
 
-                <div className="flex gap-2">
-                  <button
-                    onClick={handleTriggerSpeech}
-                    className="flex items-center gap-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 py-2.5 px-4 rounded-xl text-xs font-semibold border border-indigo-100 transition-all cursor-pointer"
-                  >
-                    <Volume2 className="w-4 h-4" />
-                    <span>{t.listenToNarrative}</span>
-                  </button>
+              {/* Voice Centric Display (No Dense Text, Just clear audio feedback & player controls) */}
+              <div className="flex-1 flex flex-col items-center justify-center py-10 space-y-8">
+                {/* Visual Speaking Status / Soundwaves */}
+                <div className="relative flex items-center justify-center">
+                  <div className={`w-32 h-32 rounded-full flex items-center justify-center transition-all ${
+                    speech.isSpeaking && !speech.isPaused
+                      ? "bg-teal-500/10 text-teal-600 animate-[pulse_1.5s_infinite]"
+                      : "bg-slate-100 text-slate-400"
+                  }`}>
+                    {speech.isSpeaking && !speech.isPaused ? (
+                      <Volume2 className="w-14 h-14 animate-bounce" />
+                    ) : (
+                      <VolumeX className="w-14 h-14" />
+                    )}
+                  </div>
+                  
+                  {/* Subtle radiating sound wave rings */}
+                  {speech.isSpeaking && !speech.isPaused && (
+                    <>
+                      <span className="absolute inset-0 rounded-full border-2 border-teal-500/30 animate-ping" />
+                      <span className="absolute -inset-4 rounded-full border border-teal-500/15 animate-[ping_2s_infinite]" />
+                    </>
+                  )}
+                </div>
+
+                <div className="text-center max-w-md space-y-3">
+                  <h4 className="text-lg font-bold text-slate-800">
+                    {speech.isSpeaking 
+                      ? speech.isPaused ? "Voice Explanation Paused" : "Listening to Claria's Voice Description..." 
+                      : "Voice Explanation Ready"
+                    }
+                  </h4>
+                  <p className="text-xs text-slate-500 leading-relaxed px-4">
+                    Claria is speaking in your selected language ({getLanguageLabel(activeAnalysis.language)}). Please sit back and listen to your simple, easy-to-understand explanation out loud.
+                  </p>
+                </div>
+
+                {/* Highly Tactile Audio Controls */}
+                <div className="flex items-center gap-4">
+                  {!speech.isSpeaking ? (
+                    <button
+                      onClick={handleTriggerSpeech}
+                      className="flex items-center gap-2.5 bg-teal-600 hover:bg-teal-700 text-white rounded-2xl py-3.5 px-8 text-sm font-bold shadow-md shadow-teal-600/15 transition-all hover:scale-105 active:scale-95 cursor-pointer"
+                    >
+                      <Play className="w-4 h-4 fill-white" />
+                      <span>Listen to Report Description</span>
+                    </button>
+                  ) : (
+                    <div className="flex gap-3">
+                      {speech.isPaused ? (
+                        <button
+                          onClick={speech.resume}
+                          className="flex items-center gap-2 bg-teal-600 hover:bg-teal-700 text-white rounded-2xl py-3 px-6 text-sm font-bold shadow-md transition-all active:scale-95 cursor-pointer"
+                        >
+                          <Play className="w-4 h-4 fill-white" />
+                          <span>Resume</span>
+                        </button>
+                      ) : (
+                        <button
+                          onClick={speech.pause}
+                          className="flex items-center gap-2 bg-slate-600 hover:bg-slate-700 text-white rounded-2xl py-3 px-6 text-sm font-bold shadow-md transition-all active:scale-95 cursor-pointer"
+                        >
+                          <Pause className="w-4 h-4" />
+                          <span>Pause</span>
+                        </button>
+                      )}
+                      <button
+                        onClick={speech.stop}
+                        className="flex items-center gap-2 bg-rose-600 hover:bg-rose-700 text-white rounded-2xl py-3 px-6 text-sm font-bold shadow-md transition-all active:scale-95 cursor-pointer"
+                      >
+                        <Square className="w-4 h-4" />
+                        <span>Stop</span>
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
 
-              {/* Double Pane: Explanation + Raw values */}
-              <div className="flex-1 space-y-6 overflow-y-auto pr-1">
-                {/* Section A: Claria's Soothing Narrative */}
-                <div className="bg-gradient-to-tr from-teal-50/20 to-indigo-50/20 p-6 md:p-8 rounded-2xl border border-teal-100/50 space-y-4 shadow-sm">
-                  <h4 className={`font-bold uppercase tracking-wider text-teal-800 flex items-center gap-1.5 ${isElderlyMode ? "text-lg" : "text-sm"}`}>
-                    <Heart className="w-5 h-5 text-teal-600 fill-teal-600" />
-                    <span>{t.patientFriendlyExplanation}</span>
-                  </h4>
-                  <div className={`space-y-5 text-slate-800 whitespace-pre-line font-medium leading-relaxed ${isElderlyMode ? "text-xl md:text-2xl font-bold leading-loose tracking-wide text-slate-950" : "text-sm md:text-md"}`}>
-                    {activeAnalysis.explanation.split("\n\n").map((para, i) => (
-                      <p key={i}>
-                        {para}
-                      </p>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Section B: Interactive Q&A Chat with Claria (Real-time interactions) */}
-                <div className="bg-white border-2 border-indigo-100/80 rounded-2xl p-5 md:p-6 space-y-4 shadow-sm relative">
-                  <div className="flex items-center justify-between border-b border-indigo-50 pb-3">
-                    <h4 className={`font-bold uppercase tracking-wider text-indigo-800 flex items-center gap-1.5 ${isElderlyMode ? "text-md" : "text-xs"}`}>
-                      <MessageSquare className="w-4 h-4 text-indigo-600" />
-                      <span>{t.askClariaQuestion}</span>
-                    </h4>
-                    {chatHistory.length > 1 && (
-                      <button
-                        onClick={() => setChatHistory([{ role: "model", text: t.chatIntroduction }])}
-                        className="text-[10px] text-slate-400 hover:text-slate-600 underline font-semibold cursor-pointer"
-                      >
-                        {t.clearChat}
-                      </button>
-                    )}
-                  </div>
-
-                  {/* Message Bubble Log */}
-                  <div className="space-y-3.5 max-h-[320px] overflow-y-auto pr-1">
-                    {chatHistory.map((msg, i) => (
-                      <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
-                        <div
-                          className={`max-w-[85%] rounded-2xl p-3.5 ${
-                            msg.role === "user"
-                              ? "bg-teal-600 text-white rounded-br-none text-left shadow-sm"
-                              : "bg-slate-50 text-slate-800 border border-slate-100 rounded-bl-none text-left shadow-sm"
-                          } ${isElderlyMode ? "text-lg md:text-xl font-bold leading-relaxed" : "text-xs font-medium leading-relaxed"}`}
-                        >
-                          <p className="whitespace-pre-line">{msg.text}</p>
-                          {msg.role === "model" && (
-                            <button
-                              onClick={() => speech.speak(msg.text, activeAnalysis.language)}
-                              className="mt-2 text-xs flex items-center gap-1 text-indigo-600 hover:text-indigo-800 font-bold"
-                            >
-                              <Volume2 className="w-3.5 h-3.5" />
-                              <span>{t.listen}</span>
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-
-                    {isChatLoading && (
-                      <div className="flex justify-start">
-                        <div className="bg-slate-50 text-slate-400 border border-slate-100 rounded-2xl rounded-bl-none p-3.5 text-xs font-semibold flex items-center gap-2">
-                          <span className="w-3.5 h-3.5 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />
-                          <span>{t.thinking}</span>
-                        </div>
-                      </div>
-                    )}
-
-                    {chatError && (
-                      <div className="p-3 bg-rose-50 border border-rose-100 text-rose-700 text-xs rounded-xl">
-                        {chatError}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Chat Input form */}
-                  <form onSubmit={handleChatSubmit} className="flex gap-2.5 pt-2">
-                    <input
-                      type="text"
-                      value={chatInput}
-                      onChange={(e) => setChatInput(e.target.value)}
-                      placeholder={t.askQuestionPlaceholder}
-                      className={`flex-1 bg-slate-50 border border-slate-200 focus:border-indigo-500 focus:bg-white rounded-xl px-4 outline-none transition-all ${
-                        isElderlyMode ? "py-4 text-md font-bold text-slate-900 shadow-sm" : "py-2.5 text-xs font-medium text-slate-700"
-                      }`}
-                      disabled={isChatLoading}
-                    />
-                    <button
-                      type="submit"
-                      disabled={isChatLoading || !chatInput.trim()}
-                      className={`bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-40 transition-all px-5 ${
-                        isElderlyMode ? "text-md" : "text-xs"
-                      }`}
-                    >
-                      <span>{t.askBtn}</span>
-                      <Send className="w-4 h-4" />
-                    </button>
-                  </form>
-                </div>
-
-                {/* Section C: Clinical Values Log */}
-                <div className="p-5 border border-slate-100 rounded-2xl space-y-4">
-                  <h4 className={`font-semibold uppercase tracking-wider text-slate-500 flex items-center gap-1.5 ${isElderlyMode ? "text-sm" : "text-xs"}`}>
-                    <FileText className="w-4 h-4 text-slate-400" />
-                    <span>{t.extractedInsights}</span>
-                  </h4>
-                  <div className="bg-slate-50/50 p-4 rounded-xl border border-slate-100">
-                    <pre className="text-xs text-slate-600 font-mono whitespace-pre-wrap leading-relaxed max-h-[180px] overflow-y-auto">
-                      {activeAnalysis.rawText}
-                    </pre>
-                  </div>
-                </div>
-
-                {/* Section D: Safety Guard Disclaimer */}
-                <div className="p-4 bg-amber-50/60 border border-amber-100 rounded-2xl flex items-start gap-3">
-                  <CheckCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
-                  <div>
-                    <h5 className="text-xs font-bold text-amber-800">{t.clinicalAnalysisResult}</h5>
-                    <p className="text-[11px] text-amber-700/90 mt-1 leading-relaxed">
-                      ClariMed uses Google Gemini AI to clarify medical terminology. Claria does not diagnose illnesses or recommend medications. Always discuss your laboratory measurements, scans, or clinical notes with a licensed healthcare practitioner or family doctor before making any medical decisions.
-                    </p>
-                  </div>
+              {/* Safety Guard Disclaimer at the bottom */}
+              <div className="p-4 bg-amber-50/60 border border-amber-100 rounded-2xl flex items-start gap-3 mt-6">
+                <CheckCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                <div>
+                  <h5 className="text-xs font-bold text-amber-800">{t.clinicalAnalysisResult}</h5>
+                  <p className="text-[11px] text-amber-700/90 mt-1 leading-relaxed">
+                    ClariMed uses Google Gemini AI to clarify medical terminology. Claria does not diagnose illnesses or recommend medications. Always discuss your laboratory measurements, scans, or clinical notes with a licensed healthcare practitioner or family doctor before making any medical decisions.
+                  </p>
                 </div>
               </div>
             </div>
@@ -992,7 +935,6 @@ export default function Dashboard({ user, token, language, onLanguageChange, onU
               <p className="text-slate-500 max-w-sm text-sm leading-relaxed font-medium">
                 {language === "hi" && "एक प्रयोगशाला रक्त परीक्षण, नुस्खा, स्कैन या नैदानिक ​​​​रिपोर्ट अपलोड करें। क्लैरिया जेमिनी का उपयोग करके मानों को ट्रांसक्राइब करेगी, और आपकी पसंद की भाषा में जोर से एक आसान-से-समझने योग्य स्पष्टीकरण देगी।"}
                 {language === "te" && "ప్రయోగశాల రక్త పరీక్ష, ప్రిస్క్రిప్షన్, స్కాన్ లేదా రోగనిర్ధారణ నివేదికను అప్‌లోడ్ చేయండి. క్లారియా జెమినిని ఉపయోగించి విలువలను లిప్యంతరీకరిస్తుంది మరియు మీకు నచ్చిన భాషలో సులభంగా అర్థమయ్యే వివరణను బిగ్గరగా చదువుతుంది."}
-                {language === "ta" && "இரத்த பரிசோதனை, மருந்துச்சீட்டு, ஸ்கேன் அல்லது நோயறிதல் அறிக்கையைப் பதிவேற்றவும். கிளாரியா ஜெமினியைப் பயன்படுத்தி மதிப்புகளைப் படியெடுத்து, உங்களுக்கு விருப்பமான மொழியில் எளிதாகப் புரிந்துகொள்ளக்கூடிய விளக்கத்தை உரக்கப் பேசும்."}
                 {language === "en" && "Upload a laboratory blood test, prescription, scan, or diagnostic report. Claria will transcribe the values using Gemini, and speak an easy-to-understand explanation aloud in your language of choice."}
               </p>
 
@@ -1057,7 +999,7 @@ export default function Dashboard({ user, token, language, onLanguageChange, onU
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 {[
                   { title: "Unlimited Analyses", desc: "No file upload or usage credit caps" },
-                  { title: "Multilingual Narrations", desc: "English, Hindi, Telugu, & Tamil translations" },
+                  { title: "Multilingual Narrations", desc: "English, Hindi, & Telugu translations" },
                   { title: "Empathetic Female Voice", desc: "Comforting tone tailored for health readings" },
                   { title: "Priority Processing", desc: "Instant response under high server loads" }
                 ].map((prop, i) => (
