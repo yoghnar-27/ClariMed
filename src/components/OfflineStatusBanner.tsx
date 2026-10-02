@@ -103,7 +103,7 @@ export default function OfflineStatusBanner({ token, onSyncComplete }: OfflineSt
             </button>
           )}
 
-          {/* Smart India Hackathon Demo Simulation Toggle */}
+          {/* Offline Demo Simulation Toggle */}
           <button
             onClick={toggleSimulatedOffline}
             className={`px-2.5 py-1 text-xs font-semibold rounded border transition flex items-center gap-1 ${

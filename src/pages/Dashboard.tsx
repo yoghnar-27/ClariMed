@@ -2014,10 +2014,6 @@ export default function Dashboard({
             <span>•</span>
             <span>Ayushman PM-JAY: 14477</span>
           </div>
-
-          <div className="text-[11px] text-slate-400 text-center md:text-right">
-            Smart India Hackathon Prototype • Rural Healthcare Initiative
-          </div>
         </div>
       </footer>
     </div>

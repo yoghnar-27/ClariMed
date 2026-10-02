@@ -222,8 +222,7 @@ export default function Login({
 
       {/* Public Health Mission Footer */}
       <footer className="mt-6 text-center text-xs text-slate-500 max-w-sm">
-        <p>Smart India Hackathon Healthcare Solution Prototype</p>
-        <p className="mt-0.5">Aligned with Ayushman Bharat Digital Mission (ABDM) • Emergency: 108</p>
+        <p>Aligned with Ayushman Bharat Digital Mission (ABDM) • Emergency: 108</p>
       </footer>
     </div>
   );
