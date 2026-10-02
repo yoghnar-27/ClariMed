@@ -1,5 +1,5 @@
 /**
- * ClariMed UI Translation Dictionaries
+ * Care Saathi UI Translation Dictionaries
  * Supports English, Hindi, and Telugu
  */
 
@@ -8,50 +8,102 @@ export type LanguageCode = "en" | "hi" | "te";
 export interface TranslationSet {
   brandName: string;
   brandSubtitle: string;
-  clinicalEngine: string;
+  brandTagline: string;
+  missionStatement: string;
+  
+  // 3 Primary Navigation Pillars
+  navUnderstand: string;
+  navFindHealthcare: string;
+  navRecords: string;
+  
+  // Header & Status
   welcomeBack: string;
-  freePlan: string;
-  premiumSubscription: string;
-  upgradeToPremium: string;
-  cancelSubscription: string;
-  analysisUsageLimit: string;
-  usedOfTotal: string;
-  unlimited: string;
-  usageLimitAlert: string;
-  multilingualPremiumFeature: string;
-  uploadClinicalReport: string;
-  narrativeLanguage: string;
-  supportsFileTypes: string;
+  abhaIdLabel: string;
+  statusOnline: string;
+  statusOffline: string;
+  syncSynced: string;
+  syncOfflineQueue: string;
+  logout: string;
+  emergencyHelpline: string;
+  emergency108: string;
+  
+  // Understand Report Tab
+  uploadTitle: string;
+  uploadSubtitle: string;
   dragDropOr: string;
+  supportsFileTypes: string;
   browseFiles: string;
-  clarifyWithGemini: string;
+  orTrySample: string;
+  sampleCbc: string;
+  sampleSugar: string;
+  sampleThyroid: string;
+  sampleLipid: string;
+  scanWithCamera: string;
+  captureScan: string;
+  cancelBtn: string;
+  analyzingReportTitle: string;
+  analyzingReportDesc: string;
+  clarifyWithAi: string;
   aiParsing: string;
-  reportHistory: string;
-  noScannedReports: string;
-  reportName: string;
-  date: string;
-  language: string;
-  actions: string;
-  listen: string;
-  viewExplanation: string;
-  delete: string;
-  clinicalAnalysisResult: string;
-  listenToNarrative: string;
-  voicePlaying: string;
-  pauseVoice: string;
-  closeAnalysis: string;
-  extractedInsights: string;
-  patientFriendlyExplanation: string;
-  premiumPlanHeading: string;
-  premiumPlanDesc: string;
-  secureBilling: string;
-  cardholderName: string;
-  cardNumber: string;
-  payUpgrade: string;
-  pricingOffer: string;
-  cancelAnytime: string;
-  pricePerMonth: string;
-  continueWithGoogle: string;
+  narrativeLanguage: string;
+  
+  // Report Result Sections
+  sectionSummary: string; // What does this report contain?
+  sectionImportantValues: string; // Important values
+  sectionAbnormalValues: string; // Values outside the provided reference range
+  sectionTermMeanings: string; // What these terms generally mean
+  sectionDoctorQuestions: string; // Questions you may want to ask your doctor
+  sectionSeekHelp: string; // When to seek professional medical help
+  sectionEducational: string; // Educational Context
+  safetyNotice: string;
+  
+  // Voice Controls
+  voiceAssistant: string;
+  listenToReport: string;
+  listeningState: string;
+  resumeBtn: string;
+  pauseBtn: string;
+  stopBtn: string;
+  askSaathiByVoice: string;
+  voiceInputPlaceholder: string;
+  sendQuestion: string;
+  speechUnavailable: string;
+  
+  // Find Healthcare Tab
+  findHealthcareTitle: string;
+  findHealthcareSubtitle: string;
+  searchFacilityPlaceholder: string;
+  filterByNeed: string;
+  allFacilities: string;
+  distanceKm: string;
+  openHours: string;
+  emergency24x7: string;
+  ayushmanEmpaneled: string;
+  freeMedicines: string;
+  availableStaff: string;
+  referralGuidance: string;
+  callFacility: string;
+  servicesOffered: string;
+  
+  // My Health Records Tab
+  recordsTitle: string;
+  recordsSubtitle: string;
+  noRecordsYet: string;
+  recordDate: string;
+  viewReport: string;
+  deleteReport: string;
+  exportDoctorSummary: string;
+  doctorSummaryTitle: string;
+  doctorSummaryNotice: string;
+  printSummary: string;
+  closeBtn: string;
+  addNote: string;
+  saveNote: string;
+  notePlaceholder: string;
+  
+  // Auth & General
+  signInTitle: string;
+  createAccountTitle: string;
   emailAddress: string;
   password: string;
   fullName: string;
@@ -60,443 +112,337 @@ export interface TranslationSet {
   dontHaveAccount: string;
   alreadyHaveAccount: string;
   validationError: string;
-  speechUnavailable: string;
-  or: string;
-  logout: string;
-  keepFreeTier: string;
-  subscribeNow: string;
-  welcomeToClariMed: string;
-  askQuestionPlaceholder: string;
-  askBtn: string;
-  thinking: string;
-  clariaAssistant: string;
-  assistModeToggle: string;
-  assistModeDesc: string;
-  askClariaQuestion: string;
-  precautionHeading: string;
-  chatIntroduction: string;
-  clearChat: string;
-  elderlyModeOn: string;
-  elderlyModeOff: string;
-  accountStatusDesc: string;
-  premiumSuccessAlert: string;
-  scanWithCamera: string;
-  captureScan: string;
-  cancelBtn: string;
-  clickToChange: string;
-  analyzingReportTitle: string;
-  analyzingReportDesc: string;
-  analyzedOn: string;
-  disclaimerText: string;
-  clariaVoiceAssistant: string;
-  naturalVoiceDesc: string;
-  letClariaRead: string;
-  speakExplanation: string;
-  resumeBtn: string;
-  pauseBtn: string;
-  stopBtn: string;
-  voiceCommandListener: string;
-  listeningState: string;
-  yourVoiceQuestion: string;
-  speakNow: string;
-  autoSubmitOnFinish: string;
-  sendQuestion: string;
-  askFollowUpByVoice: string;
-  speechRecognitionUnsupported: string;
-  accessingSecureServers: string;
-  signInWithGoogle: string;
-  toContinueToClariMed: string;
-  googleEmail: string;
-  yourName: string;
-  authorizeBtn: string;
-  registerWelcomeSub: string;
-  settingUpAccount: string;
-  goBackToLogin: string;
-  passwordLengthError: string;
-  accountCreatedSuccess: string;
-  passwordMinChars: string;
-  emailPlaceholder: string;
-  confirmDeleteHistory: string;
-  confirmCancelSub: string;
-  subCanceledSuccess: string;
-  paymentFillFieldsError: string;
-  expiryDateLabel: string;
-  cvvLabel: string;
-  clinicalMessage0: string;
-  clinicalMessage1: string;
-  clinicalMessage2: string;
-  clinicalMessage3: string;
-  clinicalMessage4: string;
+  confirmDelete: string;
 }
 
 export const translations: Record<LanguageCode, TranslationSet> = {
   en: {
-    brandName: "ClariMed",
-    brandSubtitle: "Professional Patient Report Clarifier",
-    clinicalEngine: "Clinical Engine",
-    welcomeBack: "Welcome back,",
-    freePlan: "Free Plan",
-    premiumSubscription: "Premium Subscription",
-    upgradeToPremium: "Upgrade to Premium",
-    cancelSubscription: "Cancel Subscription",
-    analysisUsageLimit: "Analysis Usage Limit",
-    usedOfTotal: "Used",
-    unlimited: "Unlimited (∞)",
-    usageLimitAlert: "You have analyzed {used} out of {total} reports. Upgrade to Premium for infinite file analyses.",
-    multilingualPremiumFeature: "Multilingual translation is completely free! Experience report analysis and audio narrative in English, Hindi, and Telugu.",
-    uploadClinicalReport: "Upload Clinical Report",
-    narrativeLanguage: "Narrative Language",
-    supportsFileTypes: "Supports PDF, PNG, or JPEG scans up to 15MB",
-    dragDropOr: "Drag & drop your medical document here, or",
-    browseFiles: "Browse Files",
-    clarifyWithGemini: "Clarify Report using Gemini AI",
-    aiParsing: "AI Clinical Parsing...",
-    reportHistory: "Report History",
-    noScannedReports: "No scanned medical reports yet. Upload a PDF or image above to begin.",
-    reportName: "Report Name",
-    date: "Date",
-    language: "Language",
-    actions: "Actions",
-    listen: "Listen",
-    viewExplanation: "View Explanation",
-    delete: "Delete",
-    clinicalAnalysisResult: "Clinical Analysis Result",
-    listenToNarrative: "Listen to Narrative",
-    voicePlaying: "Playing audio explanation...",
-    pauseVoice: "Pause Audio",
-    closeAnalysis: "Close Analysis",
-    extractedInsights: "Extracted Clinical Insights",
-    patientFriendlyExplanation: "Patient-Friendly Explanation",
-    premiumPlanHeading: "ClariMed Premium Plan",
-    premiumPlanDesc: "Unlock the full potential with unlimited clinical scans, priority parsing, and comprehensive multilingual audio narratives.",
-    secureBilling: "Secure Billing Details",
-    cardholderName: "Cardholder Name",
-    cardNumber: "Card Number",
-    payUpgrade: "Pay & Upgrade",
-    pricingOffer: "Pricing Offer",
-    cancelAnytime: "Cancel immediately anytime",
-    pricePerMonth: "$9 / month",
-    continueWithGoogle: "Continue with Google",
-    emailAddress: "Email Address",
-    password: "Password",
-    fullName: "Full Name",
-    signInBtn: "Sign In to ClariMed",
-    createAccountBtn: "Create Account",
-    dontHaveAccount: "Don't have an account? Sign Up",
-    alreadyHaveAccount: "Already have an account? Sign In",
-    validationError: "Please fix the form errors first.",
-    speechUnavailable: "Speech synthesis is not supported in this browser.",
-    or: "or",
+    brandName: "CARE SAATHI",
+    brandSubtitle: "AI-Powered Healthcare Access & Continuity Platform",
+    brandTagline: "Understand Reports • Find Public Clinics • Maintain Health Continuity",
+    missionStatement: "Empowering rural and underserved families with clear health explanations and direct access to public healthcare facilities.",
+    
+    // 3 Primary Navigation Pillars
+    navUnderstand: "1. UNDERSTAND MY REPORT",
+    navFindHealthcare: "2. FIND HEALTHCARE",
+    navRecords: "3. MY HEALTH RECORDS",
+    
+    // Header & Status
+    welcomeBack: "Namaste,",
+    abhaIdLabel: "Patient ID",
+    statusOnline: "Online • Cloud AI Ready",
+    statusOffline: "Offline • Local Mode Active",
+    syncSynced: "Records Synced",
+    syncOfflineQueue: "Offline Cache",
     logout: "Log Out",
-    keepFreeTier: "Keep Free Plan",
-    subscribeNow: "Subscribe Now",
-    welcomeToClariMed: "Welcome to ClariMed",
-    askQuestionPlaceholder: "Ask Claria a question about this report...",
-    askBtn: "Ask",
-    thinking: "Claria is thinking...",
-    clariaAssistant: "Claria Interactive Voice & Chat Assistant",
-    assistModeToggle: "Elderly Simple Assistive Mode",
-    assistModeDesc: "Enables larger fonts, automated voice reading, and ultra-simplified layout for our elders.",
-    askClariaQuestion: "Ask Claria a Question",
-    precautionHeading: "Key Precautions & Daily Advice",
-    chatIntroduction: "Hello! I am Claria, your personal guardian companion. Please feel free to ask me any questions about your report in very simple, easy-to-understand terms. I am here to comfort you!",
-    clearChat: "Clear Conversation",
-    elderlyModeOn: "Simple Mode On",
-    elderlyModeOff: "Standard Mode",
-    accountStatusDesc: "Account Status & Usage Limits",
-    premiumSuccessAlert: "You have infinite Premium analysis capabilities. Thank you for subscribing!",
-    scanWithCamera: "Scan with Device Camera",
-    captureScan: "Capture Scan",
+    emergencyHelpline: "Emergency Medical Help: Call 108 (Free 24x7 Ambulance)",
+    emergency108: "Dial 108 Ambulance",
+    
+    // Understand Report Tab
+    uploadTitle: "Understand Your Medical Report",
+    uploadSubtitle: "Upload your test report (PDF or photo) to receive a simple, comforting explanation and identify key values.",
+    dragDropOr: "Drag and drop your report file here, or",
+    supportsFileTypes: "Supports PDF, JPG, JPEG, and PNG files up to 15MB",
+    browseFiles: "Browse Report File",
+    orTrySample: "Or test with a sample clinical report in one click:",
+    sampleCbc: "Sample Blood Test (CBC)",
+    sampleSugar: "Sample Diabetes (Sugar)",
+    sampleThyroid: "Sample Thyroid (TSH)",
+    sampleLipid: "Sample Cholesterol (Lipid)",
+    scanWithCamera: "Take Photo with Camera",
+    captureScan: "Capture Document",
     cancelBtn: "Cancel",
-    clickToChange: "Click to change",
-    analyzingReportTitle: "Analyzing Medical Report",
-    analyzingReportDesc: "Medical OCR is reading test values. Please wait while Gemini constructs simple language narratives.",
-    analyzedOn: "Analysis Date",
-    disclaimerText: "ClariMed uses Google Gemini AI to clarify medical terminology. Claria does not diagnose diseases or recommend medications. Always discuss your laboratory measurements, scans, or clinical notes with your personal physician or clinical doctor before making any medical decisions.",
-    clariaVoiceAssistant: "Claria Voice Assistant",
-    naturalVoiceDesc: "Natural language healthcare voice",
-    letClariaRead: "Let Claria read the explanation out loud in a comforting, professional voice. Available in English, Hindi, and Telugu.",
-    speakExplanation: "Speak Explanation",
-    resumeBtn: "Resume",
-    pauseBtn: "Pause",
-    stopBtn: "Stop",
-    voiceCommandListener: "Voice Command Listener",
-    listeningState: "Listening...",
-    yourVoiceQuestion: "Your Voice Question",
-    speakNow: "Speak now...",
-    autoSubmitOnFinish: "Auto-submit when finished",
-    sendQuestion: "Send Question",
-    askFollowUpByVoice: "Ask a follow-up question by voice",
-    speechRecognitionUnsupported: "Speech recognition is not supported or permitted on this browser.",
-    accessingSecureServers: "Accessing secure servers...",
-    signInWithGoogle: "Sign in with Google",
-    toContinueToClariMed: "to continue to ClariMed",
-    googleEmail: "Google Email",
-    yourName: "Your Name",
-    authorizeBtn: "Authorize",
-    registerWelcomeSub: "Create your secure health account and begin clarifying medical reports instantly.",
-    settingUpAccount: "Setting up secure account...",
-    goBackToLogin: "Go back to Login",
-    passwordLengthError: "Password must be at least 6 characters.",
-    accountCreatedSuccess: "Account created successfully!",
-    passwordMinChars: "Minimum 6 characters",
-    emailPlaceholder: "you@example.com",
-    confirmDeleteHistory: "Are you sure you want to delete this historical analysis record?",
-    confirmCancelSub: "Are you sure you want to cancel your Premium subscription? Your plan will return to the Free tier immediately.",
-    subCanceledSuccess: "Subscription canceled successfully. You are now on the Free tier.",
-    paymentFillFieldsError: "Please fill out all payment fields.",
-    expiryDateLabel: "Expiry Date",
-    cvvLabel: "CVV / CVC",
-    clinicalMessage0: "Digitizing your report utilizing advanced multi-modal vision systems...",
-    clinicalMessage1: "Claria is decoding clinical medical terms into standard vocabulary...",
-    clinicalMessage2: "Formatting values and analyzing reference intervals safely...",
-    clinicalMessage3: "DRAFTING warm, empathetic, simple-language paragraphs for you...",
-    clinicalMessage4: "Almost ready! Preparing the spoken narrative with Claria's friendly voice...",
+    analyzingReportTitle: "Care Saathi is Reading Your Report...",
+    analyzingReportDesc: "Extracting test values, checking reference intervals, and preparing simple-language explanations.",
+    clarifyWithAi: "Explain My Report with Care Saathi",
+    aiParsing: "Processing Report...",
+    narrativeLanguage: "Select Language / भाषा चुनें / భాషను ఎంచుకోండి",
+    
+    // Report Result Sections
+    sectionSummary: "What does this report contain?",
+    sectionImportantValues: "Important Values & Measurements",
+    sectionAbnormalValues: "Values Outside Normal Reference Range",
+    sectionTermMeanings: "What These Medical Terms Generally Mean",
+    sectionDoctorQuestions: "Questions You May Want to Ask Your Doctor",
+    sectionSeekHelp: "When to Seek Professional Medical Help",
+    sectionEducational: "General Educational Context",
+    safetyNotice: "Important Safety Notice: This information is for understanding your report and does not replace professional medical advice. Care Saathi does NOT diagnose diseases, prescribe medicines, or recommend drug dosages. Always consult a qualified doctor or your nearest Primary Health Centre (PHC) for clinical decisions.",
+    
+    // Voice Controls
+    voiceAssistant: "Saathi Voice Assistant",
+    listenToReport: "Listen to Explanation Out Loud",
+    listeningState: "Listening to your voice... Speak now",
+    resumeBtn: "Resume Reading",
+    pauseBtn: "Pause Reading",
+    stopBtn: "Stop Reading",
+    askSaathiByVoice: "Ask a Question by Voice or Text",
+    voiceInputPlaceholder: "Speak or type your question about this report...",
+    sendQuestion: "Ask Saathi",
+    speechUnavailable: "Voice recognition is not supported in this browser. You can type your questions.",
+    
+    // Find Healthcare Tab
+    findHealthcareTitle: "Find Public Healthcare Facilities",
+    findHealthcareSubtitle: "Discover government Primary Health Centres (PHC), Community Health Centres (CHC), and District Hospitals near your village.",
+    searchFacilityPlaceholder: "Search by facility name, village or service (e.g. Rampur, CBC, Ultrasound)...",
+    filterByNeed: "Filter by Healthcare Need:",
+    allFacilities: "All Facilities",
+    distanceKm: "km away",
+    openHours: "Timings",
+    emergency24x7: "24x7 Emergency / Labor Room",
+    ayushmanEmpaneled: "Ayushman Bharat / PM-JAY Empaneled",
+    freeMedicines: "Free Generic Medicines Available",
+    availableStaff: "Duty Staff & Doctors",
+    referralGuidance: "Referral Pathway Guidance",
+    callFacility: "Call Facility",
+    servicesOffered: "Key Available Services",
+    
+    // My Health Records Tab
+    recordsTitle: "My Health Records & Follow-up Timeline",
+    recordsSubtitle: "Your stored medical reports are kept safe here for ongoing continuity of care and future doctor follow-ups.",
+    noRecordsYet: "No reports saved yet. Understand your first report to build your continuity record.",
+    recordDate: "Test Date",
+    viewReport: "View Full Explanation",
+    deleteReport: "Delete",
+    exportDoctorSummary: "Doctor-Ready Visit Summary",
+    doctorSummaryTitle: "Doctor-Ready Clinical Summary",
+    doctorSummaryNotice: "Show this clean summary to your doctor at the PHC/CHC. It highlights out-of-range values and questions for consultation.",
+    printSummary: "Print / Save as PDF",
+    closeBtn: "Close",
+    addNote: "Add Follow-up Note",
+    saveNote: "Save Note",
+    notePlaceholder: "e.g., Doctor advised 15-day review, follow low-salt diet...",
+    
+    // Auth & General
+    signInTitle: "Sign In to Care Saathi",
+    createAccountTitle: "Create Care Saathi Patient Profile",
+    emailAddress: "Email Address or Phone",
+    password: "Password",
+    fullName: "Patient / Caregiver Full Name",
+    signInBtn: "Sign In to Care Saathi",
+    createAccountBtn: "Create Free Account",
+    dontHaveAccount: "New user? Create a profile",
+    alreadyHaveAccount: "Already registered? Sign in",
+    validationError: "Please fill out all required fields.",
+    confirmDelete: "Are you sure you want to remove this report from your health records?"
   },
+  
   hi: {
-    brandName: "क्लैरीमेड",
-    brandSubtitle: "व्यावसायिक मरीज रिपोर्ट स्पष्टीकरण",
-    clinicalEngine: "क्लिनिकल इंजन",
-    welcomeBack: "वापसी पर स्वागत है,",
-    freePlan: "फ्री प्लान",
-    premiumSubscription: "प्रीमियम सदस्यता",
-    upgradeToPremium: "प्रीमियम में अपग्रेड करें",
-    cancelSubscription: "सदस्यता रद्द करें",
-    analysisUsageLimit: "विश्लेषण उपयोग सीमा",
-    usedOfTotal: "उपयोग किया गया",
-    unlimited: "असीमित (∞)",
-    usageLimitAlert: "आपने {total} में से {used} रिपोर्टों का विश्लेषण किया है। असीमित फाइल विश्लेषण के लिए प्रीमियम में अपग्रेड करें।",
-    multilingualPremiumFeature: "बहुभाषी अनुवाद पूरी तरह से मुफ्त है! अंग्रेजी, हिंदी और तेलुगु में स्पष्टीकरण और ऑडियो विवरण का अनुभव करें।",
-    uploadClinicalReport: "क्लिनिकल रिपोर्ट अपलोड करें",
-    narrativeLanguage: "विवरण की भाषा",
-    supportsFileTypes: "15MB तक के PDF, PNG, या JPEG स्कैन का समर्थन करता है",
-    dragDropOr: "अपने मेडिकल दस्तावेज़ को यहाँ खींचें और छोड़ें, या",
-    browseFiles: "फाइलें चुनें",
-    clarifyWithGemini: "जेमिनी एआई का उपयोग करके रिपोर्ट स्पष्ट करें",
-    aiParsing: "एआई क्लिनिकल पार्सिंग...",
-    reportHistory: "रिपोर्ट इतिहास",
-    noScannedReports: "अभी तक कोई स्कैन की गई मेडिकल रिपोर्ट नहीं है। शुरू करने के लिए ऊपर एक पीडीएफ या इमेज अपलोड करें।",
-    reportName: "रिपोर्ट का नाम",
-    date: "दिनांक",
-    language: "भाषा",
-    actions: "कार्रवाई",
-    listen: "सुनें",
-    viewExplanation: "स्पष्टीकरण देखें",
-    delete: "हटाएं",
-    clinicalAnalysisResult: "क्लिनिकल विश्लेषण परिणाम",
-    listenToNarrative: "विवरण सुनें",
-    voicePlaying: "ऑडियो विवरण चल रहा है...",
-    pauseVoice: "ऑडियो रोकें",
-    closeAnalysis: "विश्लेषण बंद करें",
-    extractedInsights: "निकाले गए चिकित्सा निष्कर्ष",
-    patientFriendlyExplanation: "मरीज के अनुकूल स्पष्टीकरण",
-    premiumPlanHeading: "क्लैरीमेड प्रीमियम प्लान",
-    premiumPlanDesc: "असीमित क्लिनिकल स्कैन, प्राथमिकता पार्सिंग और संपूर्ण बहुभाषी ऑडियो विवरण के साथ पूरी क्षमता का लाभ उठाएं।",
-    secureBilling: "सुरक्षित बिलिंग विवरण",
-    cardholderName: "कार्डधारक का नाम",
-    cardNumber: "कार्ड संख्या",
-    payUpgrade: "भुगतान करें और अपग्रेड करें",
-    pricingOffer: "मूल्य निर्धारण प्रस्ताव",
-    cancelAnytime: "किसी भी समय तुरंत रद्द करें",
-    pricePerMonth: "$9 / महीना",
-    continueWithGoogle: "गूगल के साथ जारी रखें",
-    emailAddress: "ईमेल पता",
-    password: "पासवर्ड",
-    fullName: "पूरा नाम",
-    signInBtn: "क्लैरीमेड में साइन इन करें",
-    createAccountBtn: "खाता बनाएं",
-    dontHaveAccount: "खाता नहीं है? साइन अप करें",
-    alreadyHaveAccount: "पहले से ही खाता है? साइन इन करें",
-    validationError: "कृपया पहले फॉर्म की समस्याओं को ठीक करें।",
-    speechUnavailable: "इस ब्राउज़र में स्पीच सिंथेसिस समर्थित नहीं है।",
-    or: "या",
-    logout: "लॉगआउट",
-    keepFreeTier: "फ्री प्लान रखें",
-    subscribeNow: "अभी सब्सक्राइब करें",
-    welcomeToClariMed: "क्लैरीमेड में आपका स्वागत है",
-    askQuestionPlaceholder: "क्लैरिया से इस रिपोर्ट के बारे में एक सवाल पूछें...",
-    askBtn: "पूछें",
-    thinking: "क्लैरिया सोच रही है...",
-    clariaAssistant: "क्लैरिया इंटरएक्टिव वॉयस और चैट असिस्टेंट",
-    assistModeToggle: "बुजुर्गों के लिए आसान सहायक मोड",
-    assistModeDesc: "हमारे बुजुर्गों के लिए बड़े फोंट, स्वचालित जोर से पढ़ना और बहुत ही सरल डिजाइन सक्षम करता है।",
-    askClariaQuestion: "क्लैरिया से एक प्रश्न पूछें",
-    precautionHeading: "महत्वपूर्ण सावधानियां और दैनिक सलाह",
-    chatIntroduction: "नमस्ते! मैं क्लैरिया हूँ, आपकी व्यक्तिगत देखभाल करने वाली साथी। कृपया मुझसे अपनी रिपोर्ट के बारे में बहुत ही सरल, आसान शब्दों में कोई भी प्रश्न पूछने के लिए स्वतंत्र महसूस करें। मैं यहाँ आपको सांत्वना देने के लिए हूँ!",
-    clearChat: "बातचीत साफ करें",
-    elderlyModeOn: "आसान मोड चालू",
-    elderlyModeOff: "मानक मोड",
-    accountStatusDesc: "खाता स्थिति और उपयोग सीमाएं",
-    premiumSuccessAlert: "आपके पास असीमित प्रीमियम विश्लेषण क्षमताएं हैं। सदस्यता लेने के लिए धन्यवाद!",
-    scanWithCamera: "डिवाइस कैमरा से स्कैन करें",
-    captureScan: "स्कैन कैप्चर करें",
+    brandName: "केयर साथी (CARE SAATHI)",
+    brandSubtitle: "एआई-संचालित स्वास्थ्य पहुंच एवं निरंतरता मंच",
+    brandTagline: "रिपोर्ट समझें • सरकारी अस्पताल खोजें • स्वास्थ्य रिकॉर्ड सुरक्षित रखें",
+    missionStatement: "ग्रामीण और वंचित परिवारों को सरल भाषा में स्वास्थ्य समझ और निकटतम सार्वजनिक स्वास्थ्य सेवाओं तक सीधी पहुंच प्रदान करना।",
+    
+    // 3 Primary Navigation Pillars
+    navUnderstand: "1. रिपोर्ट समझें (UNDERSTAND)",
+    navFindHealthcare: "2. स्वास्थ्य केंद्र खोजें (FIND)",
+    navRecords: "3. मेरे स्वास्थ्य रिकॉर्ड (CONTINUE)",
+    
+    // Header & Status
+    welcomeBack: "नमस्ते,",
+    abhaIdLabel: "मरीज आईडी (Patient ID)",
+    statusOnline: "ऑनलाइन • क्लाउड एआई सक्रिय",
+    statusOffline: "ऑफलाइन • स्थानीय रिकॉर्ड मोड",
+    syncSynced: "रिकॉर्ड सिंक हैं",
+    syncOfflineQueue: "ऑफलाइन सुरक्षित",
+    logout: "लॉग आउट",
+    emergencyHelpline: "आपातकालीन चिकित्सा सहायता: 108 पर कॉल करें (मुफ्त 24x7 एम्बुलेंस)",
+    emergency108: "108 एम्बुलेंस डायल करें",
+    
+    // Understand Report Tab
+    uploadTitle: "अपनी मेडिकल रिपोर्ट समझें",
+    uploadSubtitle: "अपनी जांच रिपोर्ट (पीडीएफ या फोटो) अपलोड करें और सरल, स्थानीय भाषा में आसान व्याख्या प्राप्त करें।",
+    dragDropOr: "अपनी रिपोर्ट फ़ाइल यहाँ खींचें, या",
+    supportsFileTypes: "पीडीएफ, जेपीजी, जेपीईजी या पीएनजी (15 एमबी तक)",
+    browseFiles: "फ़ाइल चुनें",
+    orTrySample: "या एक क्लिक में नमूना जांच रिपोर्ट से परखें:",
+    sampleCbc: "रक्त जांच नमूना (CBC)",
+    sampleSugar: "शुगर जांच नमूना (Diabetes)",
+    sampleThyroid: "थायराइड नमूना (TSH)",
+    sampleLipid: "कोलेस्ट्रॉल नमूना (Lipid)",
+    scanWithCamera: "कैमरे से फोटो खींचें",
+    captureScan: "दस्तावेज़ स्कैन करें",
     cancelBtn: "रद्द करें",
-    clickToChange: "बदलने के लिए क्लिक करें",
-    analyzingReportTitle: "मेडिकल रिपोर्ट का विश्लेषण किया जा रहा है",
-    analyzingReportDesc: "मेडिकल ओसीआर परीक्षण मूल्यों को पढ़ रहा है। कृपया प्रतीक्षा करें जब तक जेमिनी सरल भाषा में विवरण तैयार करता है।",
-    analyzedOn: "विश्लेषण तिथि",
-    disclaimerText: "क्लैरीमेड चिकित्सा शब्दावली को स्पष्ट करने के लिए गूगल जेमिनी एआई का उपयोग करता है। क्लैरिया बीमारियों का निदान नहीं करती है या दवाओं की सिफारिश नहीं करती है। कोई भी चिकित्सा निर्णय लेने से पहले हमेशा अपने व्यक्तिगत डॉक्टर या नैदानिक चिकित्सक के साथ अपने प्रयोगशाला माप, स्कैन या नैदानिक नोटों पर चर्चा करें।",
-    clariaVoiceAssistant: "क्लैरिया वॉयस असिस्टेंट",
-    naturalVoiceDesc: "प्राकृतिक भाषा स्वास्थ्य सेवा आवाज",
-    letClariaRead: "क्लैरिया को एक आरामदायक, पेशेवर आवाज में स्पष्टीकरण जोर से पढ़ने दें। अंग्रेजी, हिंदी और तेलुगु में समर्थित।",
-    speakExplanation: "स्पष्टीकरण बोलें",
-    resumeBtn: "फिर से शुरू करें",
+    analyzingReportTitle: "केयर साथी आपकी रिपोर्ट पढ़ रहा है...",
+    analyzingReportDesc: "जांच मूल्यों को निकाला जा रहा है और सरल भाषा में व्याख्या तैयार की जा रही है।",
+    clarifyWithAi: "केयर साथी से रिपोर्ट समझें",
+    aiParsing: "रिपोर्ट प्रोसेस हो रही है...",
+    narrativeLanguage: "भाषा चुनें / Select Language",
+    
+    // Report Result Sections
+    sectionSummary: "इस रिपोर्ट में क्या शामिल है?",
+    sectionImportantValues: "महत्वपूर्ण जांच मूल्य एवं आंकड़े",
+    sectionAbnormalValues: "सामान्य सीमा से बाहर के मूल्य (सावधानियां)",
+    sectionTermMeanings: "इन मेडिकल शब्दों का सरल अर्थ क्या है?",
+    sectionDoctorQuestions: "डॉक्टर साहब से पूछने योग्य जरूरी सवाल",
+    sectionSeekHelp: "तुरंत डॉक्टर के पास कब जाना चाहिए?",
+    sectionEducational: "सामान्य शैक्षिक जानकारी",
+    safetyNotice: "महत्वपूर्ण सुरक्षा सूचना: यह जानकारी केवल आपकी रिपोर्ट को समझने के लिए है और यह डॉक्टर की सलाह का विकल्प नहीं है। केयर साथी किसी बीमारी का निदान (Diagnosis) नहीं करता, न ही कोई दवा या खुराक लिखता है। किसी भी इलाज के लिए हमेशा अपने नजदीकी प्राथमिक स्वास्थ्य केंद्र (PHC) या योग्य डॉक्टर से मिलें।",
+    
+    // Voice Controls
+    voiceAssistant: "साथी वॉयस सहायक",
+    listenToReport: "रिपोर्ट की व्याख्या बोलकर सुनें",
+    listeningState: "आपकी आवाज़ सुन रहे हैं... कृपया बोलें",
+    resumeBtn: "फिर से सुनें",
     pauseBtn: "रोकें",
     stopBtn: "बंद करें",
-    voiceCommandListener: "वॉयस कमांड श्रोता",
-    listeningState: "सुन रहा हूँ...",
-    yourVoiceQuestion: "आपका वॉयस प्रश्न",
-    speakNow: "अब बोलें...",
-    autoSubmitOnFinish: "समाप्त होने पर स्वतः सबमिट करें",
-    sendQuestion: "प्रश्न भेजें",
-    askFollowUpByVoice: "आवाज द्वारा अनुवर्ती प्रश्न पूछें",
-    speechRecognitionUnsupported: "इस ब्राउज़र पर भाषण पहचान समर्थित या अनुमत नहीं है।",
-    accessingSecureServers: "सुरक्षित सर्वर तक पहुँच रहा है...",
-    signInWithGoogle: "गूगल के साथ साइन इन करें",
-    toContinueToClariMed: "क्लैरीमेड में जारी रखने के लिए",
-    googleEmail: "गूगल ईमेल",
-    yourName: "आपका नाम",
-    authorizeBtn: "अधिकृत करें",
-    registerWelcomeSub: "अपना सुरक्षित स्वास्थ्य खाता बनाएं और तुरंत मेडिकल रिपोर्ट को स्पष्ट करना शुरू करें।",
-    settingUpAccount: "सुरक्षित खाता सेट किया जा रहा है...",
-    goBackToLogin: "लॉगिन पर वापस जाएं",
-    passwordLengthError: "पासवर्ड कम से कम 6 अक्षरों का होना चाहिए।",
-    accountCreatedSuccess: "खाता सफलतापूर्वक बन गया!",
-    passwordMinChars: "कम से कम 6 अक्षर",
-    emailPlaceholder: "aapka@example.com",
-    confirmDeleteHistory: "क्या आप वाकई इस ऐतिहासिक विश्लेषण रिकॉर्ड को हटाना चाहते हैं?",
-    confirmCancelSub: "क्या आप वाकई अपनी प्रीमियम सदस्यता रद्द करना चाहते हैं? आपका प्लान तुरंत फ्री टियर में वापस आ जाएगा।",
-    subCanceledSuccess: "सदस्यता सफलतापूर्वक रद्द कर दी गई। अब आप फ्री टियर पर हैं।",
-    paymentFillFieldsError: "कृपया सभी भुगतान फ़ील्ड भरें।",
-    expiryDateLabel: "समाप्ति तिथि",
-    cvvLabel: "सीवीवी / सीवीसी",
-    clinicalMessage0: "उन्नत मल्टी-मॉडल विज़न सिस्टम का उपयोग करके आपकी रिपोर्ट को डिजिटल किया जा रहा है...",
-    clinicalMessage1: "क्लैरिया नैदानिक चिकित्सा शब्दों को मानक शब्दावली में डिकोड कर रही है...",
-    clinicalMessage2: "सुरक्षित रूप से मूल्यों को स्वरूपित किया जा रहा है और संदर्भ अंतरालों का विश्लेषण किया जा रहा है...",
-    clinicalMessage3: "आपके लिए गर्मजोशी से भरे, सहानुभूतिपूर्ण, सरल भाषा के पैराग्राफ तैयार किए जा रहे हैं...",
-    clinicalMessage4: "लगभग तैयार! क्लैरिया की अनुकूल आवाज के साथ बोले गए विवरण की तैयारी हो रही है...",
+    askSaathiByVoice: "बोलकर या लिखकर सवाल पूछें",
+    voiceInputPlaceholder: "इस रिपोर्ट के बारे में अपना सवाल पूछें या बोलें...",
+    sendQuestion: "साथी से पूछें",
+    speechUnavailable: "इस ब्राउज़र में आवाज़ पहचान उपलब्ध नहीं है। आप लिखकर सवाल पूछ सकते हैं।",
+    
+    // Find Healthcare Tab
+    findHealthcareTitle: "निकटतम सरकारी स्वास्थ्य केंद्र खोजें",
+    findHealthcareSubtitle: "अपने गांव या ब्लॉक के पास प्राथमिक स्वास्थ्य केंद्र (PHC), सामुदायिक स्वास्थ्य केंद्र (CHC) और जिला अस्पताल देखें।",
+    searchFacilityPlaceholder: "अस्पताल का नाम, गांव या सेवा खोजें (जैसे रामपुर, खून जांच, डिलीवरी)...",
+    filterByNeed: "अपनी स्वास्थ्य आवश्यकता अनुसार चुनें:",
+    allFacilities: "सभी स्वास्थ्य केंद्र",
+    distanceKm: "किमी दूर",
+    openHours: "खुलने का समय",
+    emergency24x7: "24x7 आपातकालीन / प्रसव कक्ष",
+    ayushmanEmpaneled: "आयुष्मान भारत / पीएम-जय योजना से जुड़ा",
+    freeMedicines: "मुफ्त जेनेरिक दवाएं उपलब्ध",
+    availableStaff: "उपलब्ध डॉक्टर एवं स्टाफ",
+    referralGuidance: "रेफरल एवं अस्पताल चयन सलाह",
+    callFacility: "फोन करें",
+    servicesOffered: "उपलब्ध प्रमुख सेवाएं",
+    
+    // My Health Records Tab
+    recordsTitle: "मेरे स्वास्थ्य रिकॉर्ड एवं फॉलो-अप इतिहास",
+    recordsSubtitle: "आपकी सभी पुरानी जांच रिपोर्टें यहाँ सुरक्षित हैं ताकि अगली बार डॉक्टर से मिलने पर आपको पूरी जानकारी मिल सके।",
+    noRecordsYet: "अभी तक कोई रिपोर्ट सुरक्षित नहीं है। अपनी पहली रिपोर्ट समझें और रिकॉर्ड बनाएं।",
+    recordDate: "जांच तिथि",
+    viewReport: "पूरी व्याख्या देखें",
+    deleteReport: "हटाएं",
+    exportDoctorSummary: "डॉक्टर के लिए संक्षिप्त पर्ची",
+    doctorSummaryTitle: "डॉक्टर परामर्श संक्षिप्त विवरण",
+    doctorSummaryNotice: "सरकारी अस्पताल या क्लिनिक में डॉक्टर साहब को यह पर्ची दिखाएं। इसमें असामान्य जांच मूल्य और जरूरी सवाल दर्ज हैं।",
+    printSummary: "प्रिंट करें / पीडीएफ सेव करें",
+    closeBtn: "बंद करें",
+    addNote: "फॉलो-अप नोट जोड़ें",
+    saveNote: "नोट सुरक्षित करें",
+    notePlaceholder: "उदा. डॉक्टर ने 15 दिन बाद दोबारा खून जांच कराने को कहा है...",
+    
+    // Auth & General
+    signInTitle: "केयर साथी में प्रवेश करें",
+    createAccountTitle: "मरीज / परिवार का नया खाता बनाएं",
+    emailAddress: "ईमेल या मोबाइल नंबर",
+    password: "पासवर्ड",
+    fullName: "मरीज का पूरा नाम",
+    signInBtn: "लॉग इन करें",
+    createAccountBtn: "मुफ्त खाता बनाएं",
+    dontHaveAccount: "नया खाता बनाएं",
+    alreadyHaveAccount: "पहले से खाता है? लॉग इन करें",
+    validationError: "कृपया सभी आवश्यक जानकारी भरें।",
+    confirmDelete: "क्या आप वाकई इस रिपोर्ट को अपने स्वास्थ्य रिकॉर्ड से हटाना चाहते हैं?"
   },
+
   te: {
-    brandName: "క్లారిమెడ్",
-    brandSubtitle: "ప్రొఫెషనల్ రోగి నివేదిక వివరణకర్త",
-    clinicalEngine: "క్లినికల్ ఇంజన్",
-    welcomeBack: "స్వాగతం,",
-    freePlan: "ఉచిత ప్లాన్",
-    premiumSubscription: "ప్రీమియం సబ్‌స్క్రిప్షన్",
-    upgradeToPremium: "ప్రీమియంకు అప్‌గ్రేడ్ చేయండి",
-    cancelSubscription: "సబ్‌స్క్రిప్షన్ రద్దు చేయి",
-    analysisUsageLimit: "విశ్లేషణ వినియోగ పరిమితి",
-    usedOfTotal: "ఉపయోగించబడింది",
-    unlimited: "అపరిమితం (∞)",
-    usageLimitAlert: "మీరు {total} నివేదికలలో {used} విశ్లేషించారు. అపరిమిత ఫైల్ విశ్లేషణల కోసం ప్రీమియంకు అప్‌గ్రేడ్ చేయండి.",
-    multilingualPremiumFeature: "బహుభాషా అనువాదం పూర్తిగా ఉచితం! ఇంగ్లీష్, హిందీ మరియు తెలుగు భాషలలో నివేదిక విశ్లేషణ మరియు ఆడియో వివరణను పొందండి.",
-    uploadClinicalReport: "క్లినికల్ రిపోర్ట్ అప్‌లోడ్ చేయండి",
-    narrativeLanguage: "వివరణ భాష",
-    supportsFileTypes: "15MB వరకు PDF, PNG, లేదా JPEG స్కాన్‌లకు మద్దతు ఇస్తుంది",
-    dragDropOr: "మీ వైద్య పత్రాన్ని ఇక్కడ లాగి వదలండి, లేదా",
-    browseFiles: "ఫైళ్లను ఎంచుకోండి",
-    clarifyWithGemini: "జెమినై AI ఉపయోగించి రిపోర్టును స్పష్టం చేయండి",
-    aiParsing: "AI క్లినికల్ పార్సింగ్...",
-    reportHistory: "రిపోర్ట్ హిస్టరీ",
-    noScannedReports: "ఇంకా స్కాన్ చేసిన వైద్య నివేదికలు లేవు. ప్రారంభించడానికి పైన ఒక PDF లేదా చిత్రాన్ని అప్‌లోడ్ చేయండి.",
-    reportName: "నివేదిక పేరు",
-    date: "తేదీ",
-    language: "భాష",
-    actions: "చర్యలు",
-    listen: "వినండి",
-    viewExplanation: "వివరణను చూడండి",
-    delete: "తొలగించు",
-    clinicalAnalysisResult: "క్లినికల్ విశ్లేషణ ఫలితం",
-    listenToNarrative: "వివరణ వినండి",
-    voicePlaying: "ఆడియో వివరణ ప్లే అవుతోంది...",
-    pauseVoice: "ఆడియోను ఆపండి",
-    closeAnalysis: "విశ్లేషణ మూసివేయి",
-    extractedInsights: "సేకరించిన వైద్య అంతర్దృష్తులు",
-    patientFriendlyExplanation: "రోగికి అర్థమయ్యే వివరణ",
-    premiumPlanHeading: "క్లారిమెడ్ ప్రీమియం ప్లాన్",
-    premiumPlanDesc: "అపరిమిత క్లినికల్ స్కాన్లు, ప్రాధాన్యత పార్సింగ్ మరియు సంపూర్ణ బహుభాషా ఆడియో వివరణతో పూర్తి సామర్థ్యాన్ని అన్‌లాక్ చేయండి.",
-    secureBilling: "సురక్షిత బిల్లింగ్ వివరాలు",
-    cardholderName: "కార్డుదారుని పేరు",
-    cardNumber: "కార్డు సంఖ్య",
-    payUpgrade: "చెల్లించి అప్‌గ్రేడ్ చేయండి",
-    pricingOffer: "ధర ఆఫర్",
-    cancelAnytime: "ఎప్పుడైనా రద్దు చేసుకోండి",
-    pricePerMonth: "$9 / నెల",
-    continueWithGoogle: "గూగుల్‌తో కొనసాగండి",
-    emailAddress: "ఈమెయిల్ చిరునామా",
-    password: "పాస్‌వర్డ్",
-    fullName: "పూర్తి పేరు",
-    signInBtn: "క్లారిమెడ్‌కు సైన్ ఇన్ చేయండి",
-    createAccountBtn: "ఖాతాను సృష్టించండి",
-    dontHaveAccount: "ఖాతా లేదా? సైన్ అప్ చేయండి",
-    alreadyHaveAccount: "ఇప్పటికే ఖాతా ఉందా? సైన్ ఇన్ చేయండి",
-    validationError: "దయచేసి ముందుగా ఫారమ్ సమస్యలను పరిష్కరించండి.",
-    speechUnavailable: "ఈ బ్రౌజర్‌లో స్పీచ్ సింథసిస్ సపోర్ట్ లేదు.",
-    or: "లేదా",
+    brandName: "కేర్ సాథి (CARE SAATHI)",
+    brandSubtitle: "ఏఐ-ఆధారిత ఆరోగ్య సంరక్షణ & సమగ్ర కొనసాగింపు వేదిక",
+    brandTagline: "నివేదిక అర్థం చేసుకోండి • ప్రభుత్వ క్లినిక్ కనుగొనండి • ఆరోగ్య రికార్డులను భద్రపరచండి",
+    missionStatement: "గ్రామీణ మరియు వెనుకబడిన కుటుంబాలకు సులభమైన భాషలో ఆరోగ్య అవగాహన మరియు ప్రభుత్వ ఆరోగ్య సేవలకు ప్రత్యక్ష ప్రాప్యతను అందించడం.",
+    
+    // 3 Primary Navigation Pillars
+    navUnderstand: "1. నివేదిక అర్థం చేసుకోండి (UNDERSTAND)",
+    navFindHealthcare: "2. ఆరోగ్య కేంద్రాన్ని కనుగొనండి (FIND)",
+    navRecords: "3. నా ఆరోగ్య రికార్డులు (CONTINUE)",
+    
+    // Header & Status
+    welcomeBack: "నమస్కారం,",
+    abhaIdLabel: "రోగి ఐడీ (Patient ID)",
+    statusOnline: "ఆన్‌లైన్ • క్లౌడ్ ఏఐ సిద్ధంగా ఉంది",
+    statusOffline: "ఆఫ్‌లైన్ • స్థానిక రికార్డు మోడ్",
+    syncSynced: "రికార్డులు సింక్ అయ్యాయి",
+    syncOfflineQueue: "ఆఫ్‌లైన్ భద్రత",
     logout: "లాగ్ అవుట్",
-    keepFreeTier: "ఉచిత ప్లాన్ ఉంచండి",
-    subscribeNow: "ఇప్పుడే సబ్‌స్క్రైబ్ చేయండి",
-    welcomeToClariMed: "క్లారిమెడ్‌కు స్వాగతం",
-    askQuestionPlaceholder: "ఈ నివేదిక గురించి క్లారియాను ఒక ప్రశ్న అడగండి...",
-    askBtn: "అడగండి",
-    thinking: "క్లారియా ఆలోచిస్తోంది...",
-    clariaAssistant: "క్లారియా ఇంటరాక్టివ్ వాయిస్ & చాట్ అసిస్టెంట్",
-    assistModeToggle: "వృద్ధులకు సులభ సహాయక మోడ్",
-    assistModeDesc: "మన పెద్దల కోసం పెద్ద అక్షరాలు, స్వయంచాలక వాయిస్ రీడింగ్ మరియు చాలా సరళమైన డిజైన్‌ను ప్రారంవీస్తుంది.",
-    askClariaQuestion: "క్లారియాను ఒక ప్రశ్న అడగండి",
-    precautionHeading: "ముఖ్యమైన జాగ్రత్తలు & రోజువారీ సలహా",
-    chatIntroduction: "నమస్కారం! నేను క్లారియా, మీ వ్యక్తిగత సంరక్షక తోడు. దయచేసి మీ నివేదిక గురించి చాలా సరళమైన, సుభంగా అర్థమయ్యే పదాలలో నన్ను ఏవైనా ప్రశ్నలు అడగడానికి సంకోచించకండి. మీకు ఓదార్పునివ్వడానికి నేను ఇక్కడ ఉన్నాను!",
-    clearChat: "సంభాషణను క్లియర్ చేయి",
-    elderlyModeOn: "సుభ మోడ్ ఆన్",
-    elderlyModeOff: "ప్రామాణిక మోడ్",
-    accountStatusDesc: "ఖాతా స్థితి & వినియోగ పరిమితులు",
-    premiumSuccessAlert: "మీకు అపరిమిత ప్రీమియం విశ్లేషణ సామర్థ్యాలు ఉన్నాయి. సభ్యత్వాన్ని పొందినందుకు ధన్యవాదాలు!",
-    scanWithCamera: "పరికర కెమెరాతో స్కాన్ చేయండి",
-    captureScan: "స్కాన్‌ని క్యాప్చర్ చేయండి",
-    cancelBtn: "రద్దు చేయి",
-    clickToChange: "మార్చడానికి క్లిక్ చేయండి",
-    analyzingReportTitle: "వైద్య నివేదికను విశ్లేషిస్తోంది",
-    analyzingReportDesc: "మెడికల్ OCR పరీక్ష విలువలని చదువుతోంది. జెమినై సులభమైన భాషలో నివేదికను తయారుచేసే వరకు దయచేసి వేచి ఉండండి.",
-    analyzedOn: "విశ్లేషించబడిన తేదీ",
-    disclaimerText: "వైద్య పరిభాషను స్పష్టం చేయడానికి క్లారిమెడ్ గూగుల్ జెమినై AIని ఉపయోగిస్తుంది. క్లారియా వ్యాధులను నిర్ధారించదు లేదా మందులను సిఫార్సు చేయదు. ఏదైనా వైద్యపరమైన నిర్ణయాలు తీసుకునే ముందు మీ ప్రయోగశాల కొలతలు, స్కాన్‌లు లేదా క్లినికల్ నోట్స్‌ను మీ వ్యక్తిగత వైద్యుడు లేదా ఫ్యామిలీ డాక్టర్‌తో ఎల్లప్పుడూ చర్చించండి.",
-    clariaVoiceAssistant: "క్లారియా వాయిస్ అసిస్టెంట్",
-    naturalVoiceDesc: "సహజ భాషా ఆరోగ్య సంరక్షణ వాయిస్",
-    letClariaRead: "క్లారియాను నివేదిక వివరణను ప్రశాంతమైన, వృత్తిపరమైన స్వరంలో బిగ్గరగా చదవనివ్వండి. ఇంగ్లీష్, హిందీ మరియు తెలుగు భాషలలో లభిస్తుంది.",
-    speakExplanation: "వివరణను వినిపించండి",
-    resumeBtn: "తిరిగి ప్రారంభివ్వు",
-    pauseBtn: "తాత్కాలికంగా ఆపు",
-    stopBtn: "ఆపివేయి",
-    voiceCommandListener: "కమాండ్ వినే పరికరం",
-    listeningState: "వింటున్నాను...",
-    yourVoiceQuestion: "మీ వాయిస్ ప్రశ్న",
-    speakNow: "ఇప్పుడు మాట్లాడండి...",
-    autoSubmitOnFinish: "పూర్తయిన తర్వాత ఆటోమేటిక్‌గా సమర్పించు",
-    sendQuestion: "ప్రశ్న పంపండి",
-    askFollowUpByVoice: "వాయిస్ ద్వారా తదుపరి ప్రశ్న అడగండి",
-    speechRecognitionUnsupported: "ఈ బ్రౌజర్‌లో స్పీచ్ రికగ్నిషన్ సపోర్ట్ లేదు లేదా అనుమతించబడలేదు.",
-    accessingSecureServers: "సురక్షిత సర్వర్‌లను సంప్రదిస్తోంది...",
-    signInWithGoogle: "గూగుల్‌తో సైన్ ఇన్ చేయండి",
-    toContinueToClariMed: "క్లారిమెడ్‌కు కొనసాగడానికి",
-    googleEmail: "గూగుల్ ఈమెయిల్",
-    yourName: "మీ పేరు",
-    authorizeBtn: "అనుమతించు",
-    registerWelcomeSub: "మీ సురక్షిత ఆరోగ్య ఖాతాను సృష్టించండి మరియు వైద్య నివేదికలను వెంటనే స్పష్టం చేయడం ప్రారంభించండి.",
-    settingUpAccount: "సురక్షిత ఖాతాను సృష్టిస్తోంది...",
-    goBackToLogin: "లాగిన్‌కి తిరిగి వెళ్లు",
-    passwordLengthError: "పాస్‌వర్డ్ కనీసం 6 అక్షరాలు ఉండాలి.",
-    accountCreatedSuccess: "ఖాతా విజయవంతంగా సృష్టించబడింది!",
-    passwordMinChars: "కనీసం 6 అక్షరాలు",
-    emailPlaceholder: "mee_email@example.com",
-    confirmDeleteHistory: "మీరు నిజంగానే ఈ విశ్లేషణ చరిత్ర రికార్డును తొలగించాలనుకుంటున్నారా?",
-    confirmCancelSub: "మీరు నిజంగానే మీ ప్రీమియం సభ్యత్వాన్ని రద్దు చేయాలనుకుంటున్నారా? మీ ప్లాన్ వెంటనే ఉచిత ప్లాన్‌కి మార్చబడుతుంది.",
-    subCanceledSuccess: "సభ్యత్వం విజయవంతంగా రద్దు చేయబడింది. మీరు ఇప్పుడు ఉచిత ప్లాన్‌లో ఉన్నారు.",
-    paymentFillFieldsError: "దయచేసి అన్ని చెల్లింపు వివరాలను పూరించండి.",
-    expiryDateLabel: "గడువు ముగిసే తేదీ",
-    cvvLabel: "CVV / CVC",
-    clinicalMessage0: "అధునాతన మల్టీ-మోడల్ విజన్ సిస్టమ్‌ల ద్వారా మీ నివేదికను డిజిటలైజ్ చేస్తోంది...",
-    clinicalMessage1: "క్లారియా వైద్య పరిభాషను సాధారణ పదాలలోకి మారుస్తోంది...",
-    clinicalMessage2: "విలువలని అమర్చుతోంది మరియు ప్రమాణాలని విశ్లేషిస్తోంది...",
-    clinicalMessage3: "మీ కోసం ఓదార్పుకరమైన, సులభమైన భాషా వివరణను సిద్ధం చేస్తోంది...",
-    clinicalMessage4: "దాదాపు సిద్ధమైంది! క్లారియా స్వరంతో మాట్లాడే వివరణను సిద్ధం చేస్తోంది...",
-  },
+    emergencyHelpline: "అత్యవసర వైద్య సహాయం: 108 కి కాల్ చేయండి (ఉచిత 24x7 అంబులెన్స్)",
+    emergency108: "108 అంబులెన్స్‌కు కాల్ చేయండి",
+    
+    // Understand Report Tab
+    uploadTitle: "మీ వైద్య పరీక్ష నివేదికను అర్థం చేసుకోండి",
+    uploadSubtitle: "మీ పరీక్ష నివేదికను (పిడిఎఫ్ లేదా ఫోటో) అప్‌లోడ్ చేయండి మరియు సాధారణ, స్పష్టమైన వివరణను పొందండి.",
+    dragDropOr: "మీ ఫైల్‌ను ఇక్కడ లాగండి లేదా",
+    supportsFileTypes: "PDF, JPG, JPEG లేదా PNG (గరిష్టంగా 15MB)",
+    browseFiles: "ఫైల్‌ను ఎంచుకోండి",
+    orTrySample: "లేదా ఒకే క్లిక్‌తో నమూనా నివేదికను పరీక్షించండి:",
+    sampleCbc: "రక్త పరీక్ష నమూనా (CBC)",
+    sampleSugar: "షుగర్ పరీక్ష నమూనా (Diabetes)",
+    sampleThyroid: "థైరాయిడ్ నమూనా (TSH)",
+    sampleLipid: "కొలెస్ట్రాల్ నమూనా (Lipid)",
+    scanWithCamera: "కెమెరాతో ఫోటో తీయండి",
+    captureScan: "పత్రాన్ని స్కాన్ చేయండి",
+    cancelBtn: "రద్దు చేయండి",
+    analyzingReportTitle: "కేర్ సాథి మీ నివేదికను చదువుతోంది...",
+    analyzingReportDesc: "పరీక్ష విలువలను పరిశీలించి, సాధారణ తెలుగులో స్పష్టమైన వివరణను తయారు చేస్తున్నాము.",
+    clarifyWithAi: "కేర్ సాథితో నివేదికను అర్థం చేసుకోండి",
+    aiParsing: "ప్రాసెస్ చేయబడుతోంది...",
+    narrativeLanguage: "భాషను ఎంచుకోండి / Select Language",
+    
+    // Report Result Sections
+    sectionSummary: "ఈ నివేదికలో ఏముంది?",
+    sectionImportantValues: "ముఖ్యమైన పరీక్ష విలువలు మరియు కొలతలు",
+    sectionAbnormalValues: "సాధారణ పరిధికి భిన్నంగా ఉన్న విలువలు",
+    sectionTermMeanings: "ఈ వైద్య పదాల సాధారణ అర్థం ఏమిటి?",
+    sectionDoctorQuestions: "మీ డాక్టర్ గారిని అడగవలసిన ముఖ్యమైన ప్రశ్నలు",
+    sectionSeekHelp: "వెంటనే డాక్టర్ సంప్రదించాల్సిన అత్యవసర సంకేతాలు",
+    sectionEducational: "సాధారణ అవగాహన సమాచారం",
+    safetyNotice: "ముఖ్యమైన భద్రతా గమనిక: ఈ సమాచారం మీ నివేదికను అర్థం చేసుకోవడానికి మాత్రమే మరియు డాక్టర్ సలహాకు ప్రత్యామ్నాయం కాదు. కేర్ సాథి వ్యాధులను నిర్ధారించదు లేదా మందులను సూచించదు. ఏదైనా చికిత్స నిర్ణయాల కోసం ఎల్లప్పుడూ మీ సమీప ప్రాథమిక ఆరోగ్య కేంద్రం (PHC) లేదా అర్హత కలిగిన వైద్యుడిని సంప్రదించండి.",
+    
+    // Voice Controls
+    voiceAssistant: "సాథి వాయిస్ అసిస్టెంట్",
+    listenToReport: "వివరణను బిగ్గరగా వినండి",
+    listeningState: "మీ మాటలను వింటున్నాము... మాట్లాడండి",
+    resumeBtn: "మళ్లీ వినండి",
+    pauseBtn: "ఆపండి",
+    stopBtn: "ముగించండి",
+    askSaathiByVoice: "మాట్లాడి లేదా టైప్ చేసి ప్రశ్న అడగండి",
+    voiceInputPlaceholder: "ఈ నివేదిక గురించి మీ ప్రశ్నను అడగండి...",
+    sendQuestion: "సాథిని అడగండి",
+    speechUnavailable: "ఈ బ్రౌజర్‌లో వాయిస్ రికగ్నిషన్ సపోర్ట్ లేదు. మీరు టైప్ చేసి ప్రశ్న అడగవచ్చు.",
+    
+    // Find Healthcare Tab
+    findHealthcareTitle: "ప్రభుత్వ ఆరోగ్య కేంద్రాలను కనుగొనండి",
+    findHealthcareSubtitle: "మీ సమీప ప్రాథమిక ఆరోగ్య కేంద్రం (PHC), కమ్యూనిటీ ఆరోగ్య కేంద్రం (CHC) మరియు జిల్లా ఆసుపత్రులను తెలుసుకోండి.",
+    searchFacilityPlaceholder: "ఆసుపత్రి పేరు, గ్రామం లేదా సేవ కోసం వెతకండి (ఉదా: రాంపూర్, రక్త పరీక్ష, ప్రసవం)...",
+    filterByNeed: "ఆరోగ్య అవసరాన్ని బట్టి ఫిల్టర్ చేయండి:",
+    allFacilities: "అన్ని కేంద్రాలు",
+    distanceKm: "కి.మీ దూరంలో",
+    openHours: "పని వేళలు",
+    emergency24x7: "24x7 అత్యవసర / డెలివరీ గది",
+    ayushmanEmpaneled: "ఆయుష్మాన్ భారత్ / PM-JAY అనుసంధాన ఆసుపత్రి",
+    freeMedicines: "ఉచిత జెనెరిక్ మందులు లభిస్తాయి",
+    availableStaff: "అందుబాటులో ఉన్న వైద్యులు & సిబ్బంది",
+    referralGuidance: "రెఫరల్ మరియు ఆసుపత్రి మార్గదర్శకం",
+    callFacility: "కాల్ చేయండి",
+    servicesOffered: "అందుబాటులో ఉన్న ప్రధాన సేవలు",
+    
+    // My Health Records Tab
+    recordsTitle: "నా ఆరోగ్య రికార్డులు & తదుపరి సంరక్షణ కాలక్రమం",
+    recordsSubtitle: "తదుపరి డాక్టర్ సంప్రదింపుల కోసం మీ మునుపటి నివేదికలు ఇక్కడ సురక్షితంగా భద్రపరచబడ్డాయి.",
+    noRecordsYet: "ఇంకా నివేదికలు భద్రపరచబడలేదు. మొదటి నివేదికను పరిశీలించి రికార్డును ప్రారంభించండి.",
+    recordDate: "పరీక్ష తేదీ",
+    viewReport: "పూర్తి వివరణను చూడండి",
+    deleteReport: "తొలగించండి",
+    exportDoctorSummary: "డాక్టర్ సంప్రదింపు పత్రం",
+    doctorSummaryTitle: "డాక్టర్ క్లినికల్ సారాంశం",
+    doctorSummaryNotice: "ఆసుపత్రిలో డాక్టర్ గారికి ఈ సారాంశాన్ని చూపించండి. ఇందులో అసహజ పరీక్ష ఫలితాలు మరియు ప్రశ్నలు ఉంటాయి.",
+    printSummary: "ప్రింట్ / పిడిఎఫ్ సేవ్ చేయండి",
+    closeBtn: "మూసివేయండి",
+    addNote: "ఫాలో-అప్ నోట్ రాయండి",
+    saveNote: "సేవ్ చేయండి",
+    notePlaceholder: "ఉదా: డాక్టర్ 15 రోజుల తర్వాత మళ్లీ బీపీ తనిఖీ చేయాలని చెప్పారు...",
+    
+    // Auth & General
+    signInTitle: "కేర్ సాథి లోకి ప్రవేశించండి",
+    createAccountTitle: "కొత్త రోగి ఖాతాను సృష్టించండి",
+    emailAddress: "ఇమెయిల్ లేదా ఫోన్ నంబర్",
+    password: "పాస్‌వర్డ్",
+    fullName: "రోగి పూర్తి పేరు",
+    signInBtn: "లాగిన్ చేయండి",
+    createAccountBtn: "ఉచిత ఖాతాను సృష్టించండి",
+    dontHaveAccount: "కొత్త ఖాతా కావాలా? ఇక్కడ నమోదు చేసుకోండి",
+    alreadyHaveAccount: "ఖాతా ఉందా? లాగిన్ చేయండి",
+    validationError: "దయచేసి అన్ని వివరాలను నమోదు చేయండి.",
+    confirmDelete: "మీరు ఖచ్చితంగా ఈ నివేదికను మీ రికార్డుల నుండి తొలగించాలనుకుంటున్నారా?"
+  }
 };

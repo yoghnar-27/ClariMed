@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 import crypto from "crypto";
-import { User, Analysis } from "../src/types.js"; // Note: we can use relative imports
+import { User, Analysis, StructuredReportData } from "../src/types.js";
 
 // Database File Path
 const DB_DIR = path.join(process.cwd(), "data");
@@ -15,9 +15,16 @@ interface DbSchema {
     name: string;
     passwordHash: string;
     createdAt: string;
+    abhaId?: string;
+    role?: 'patient' | 'asha_worker' | 'caregiver';
     plan?: 'free' | 'premium';
   }>;
   analyses: Analysis[];
+}
+
+function generatePatientId(): string {
+  const p1 = Math.floor(100000 + Math.random() * 900000);
+  return `CS-P${p1}`;
 }
 
 // Utility to initialize the database if it doesn't exist
@@ -52,7 +59,7 @@ function saveDb(data: DbSchema) {
   }
 }
 
-// Simple SHA-256 Hashing function (no external dependencies, 100% stable!)
+// Simple SHA-256 Hashing function
 function hashPassword(password: string): string {
   return crypto.createHash("sha256").update(password).digest("hex");
 }
@@ -76,18 +83,21 @@ export const db = {
       name: name.trim(),
       passwordHash: hashPassword(passwordString),
       createdAt: new Date().toISOString(),
+      patientId: generatePatientId(),
+      role: 'patient' as const,
       plan: 'free' as const
     };
 
     data.users.push(newUser);
     saveDb(data);
 
-    // Return user profile without passwordHash
     return {
       id: newUser.id,
       email: newUser.email,
       name: newUser.name,
       createdAt: newUser.createdAt,
+      patientId: newUser.patientId,
+      role: newUser.role,
       plan: newUser.plan
     };
   },
@@ -107,6 +117,8 @@ export const db = {
       email: user.email,
       name: user.name,
       createdAt: user.createdAt,
+      patientId: (user as any).patientId || user.id.slice(0, 8).toUpperCase(),
+      role: user.role || 'patient',
       plan: user.plan || 'free'
     };
   },
@@ -123,8 +135,10 @@ export const db = {
         name: name.trim(),
         passwordHash: hashPassword(crypto.randomBytes(16).toString("hex")),
         createdAt: new Date().toISOString(),
+        patientId: generatePatientId(),
+        role: 'patient' as const,
         plan: 'free' as const
-      };
+      } as any;
       data.users.push(user);
       saveDb(data);
     }
@@ -134,6 +148,8 @@ export const db = {
       email: user.email,
       name: user.name,
       createdAt: user.createdAt,
+      patientId: (user as any).patientId || user.id.slice(0, 8).toUpperCase(),
+      role: user.role || 'patient',
       plan: user.plan || 'free'
     };
   },
@@ -149,6 +165,8 @@ export const db = {
       email: user.email,
       name: user.name,
       createdAt: user.createdAt,
+      patientId: (user as any).patientId || user.id.slice(0, 8).toUpperCase(),
+      role: user.role || 'patient',
       plan: user.plan || 'free'
     };
   },
@@ -166,13 +184,23 @@ export const db = {
       email: user.email,
       name: user.name,
       createdAt: user.createdAt,
+      abhaId: user.abhaId,
+      role: user.role || 'patient',
       plan: user.plan
     };
   },
 
   // --- ANALYSES & REPORTS ---
 
-  saveAnalysis(userId: string, reportName: string, reportType: string, rawText: string, explanation: string, language: 'en' | 'hi' | 'te') {
+  saveAnalysis(
+    userId: string,
+    reportName: string,
+    reportType: string,
+    rawText: string,
+    explanation: string,
+    language: 'en' | 'hi' | 'te',
+    structuredData?: StructuredReportData
+  ) {
     const data = initDb();
 
     const newAnalysis: Analysis = {
@@ -184,8 +212,9 @@ export const db = {
       explanation,
       language,
       createdAt: new Date().toISOString(),
+      structuredData,
       translations: {
-        [language]: { rawText, explanation }
+        [language]: { rawText, explanation, structuredData }
       }
     };
 
@@ -197,7 +226,6 @@ export const db = {
 
   getUserHistory(userId: string): Analysis[] {
     const data = initDb();
-    // Filter by userId and sort by newest first
     return data.analyses
       .filter(a => a.userId === userId)
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
@@ -215,7 +243,16 @@ export const db = {
     return true;
   },
 
-  updateAnalysis(analysisId: string, userId: string, explanation: string, language: 'en' | 'hi' | 'te', rawText?: string) {
+  updateAnalysis(
+    analysisId: string,
+    userId: string,
+    explanation: string,
+    language: 'en' | 'hi' | 'te',
+    rawText?: string,
+    structuredData?: StructuredReportData,
+    doctorNotes?: string,
+    followUpDate?: string
+  ) {
     const data = initDb();
     const analysis = data.analyses.find(a => a.id === analysisId && a.userId === userId);
     if (!analysis) {
@@ -226,14 +263,49 @@ export const db = {
     if (rawText !== undefined) {
       analysis.rawText = rawText;
     }
+    if (structuredData !== undefined) {
+      analysis.structuredData = structuredData;
+    }
+    if (doctorNotes !== undefined) {
+      analysis.doctorNotes = doctorNotes;
+    }
+    if (followUpDate !== undefined) {
+      analysis.followUpDate = followUpDate;
+    }
     if (!analysis.translations) {
       analysis.translations = {};
     }
     analysis.translations[language] = {
       explanation,
-      rawText: rawText !== undefined ? rawText : analysis.rawText
+      rawText: rawText !== undefined ? rawText : analysis.rawText,
+      structuredData: structuredData !== undefined ? structuredData : analysis.structuredData
     };
     saveDb(data);
     return analysis;
+  },
+
+  upsertAnalysis(analysis: Analysis, userId: string): Analysis {
+    const data = initDb();
+    const existingIndex = data.analyses.findIndex(a => a.id === analysis.id && a.userId === userId);
+    const updated: Analysis = {
+      ...analysis,
+      userId,
+      updatedAt: analysis.updatedAt || new Date().toISOString()
+    };
+    if (existingIndex >= 0) {
+      const existing = data.analyses[existingIndex];
+      const existingTime = existing.updatedAt ? new Date(existing.updatedAt).getTime() : new Date(existing.createdAt).getTime();
+      const newTime = updated.updatedAt ? new Date(updated.updatedAt).getTime() : new Date(updated.createdAt).getTime();
+      if (newTime >= existingTime) {
+        data.analyses[existingIndex] = {
+          ...existing,
+          ...updated
+        };
+      }
+    } else {
+      data.analyses.push(updated);
+    }
+    saveDb(data);
+    return updated;
   }
 };
